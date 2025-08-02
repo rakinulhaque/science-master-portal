@@ -1,57 +1,52 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from './db.js';
+import Branch from './branch.js';
 
-class User extends Model {}
+class Batch extends Model {}
 
-User.init(
+Batch.init(
   {
     id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
-    username: {
+    batchCode: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
     },
-    password: {
+    name: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    mobile: {
+    location: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    timing: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    role: {
-      type: DataTypes.ENUM('super_admin', 'admin'),
-      allowNull: false,
-      defaultValue: 'admin',
-    },
     branchId: {
       type: DataTypes.INTEGER,
-      allowNull: true, // Only required for admins
+      allowNull: false,
       references: {
         model: 'branches',
         key: 'id',
       },
-      onDelete: 'SET NULL',
+      onDelete: 'CASCADE',
       onUpdate: 'CASCADE',
     },
   },
   {
     sequelize,
-    modelName: 'User',
-    tableName: 'users',
+    modelName: 'Batch',
+    tableName: 'batches',
     timestamps: true,
   }
 );
 
+Batch.belongsTo(Branch, { foreignKey: 'branchId' });
 
-
-export default User;
+export default Batch;
