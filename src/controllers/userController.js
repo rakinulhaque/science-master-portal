@@ -4,7 +4,7 @@ import Branch from '../models/branch.js';
 
 export const updateAdmin = async (req, res) => {
   const { id } = req.params;
-  const { username, email, mobile, password, branchId } = req.body;
+  const { username, email, mobile, password, branchId, fullName } = req.body;
   const t = await sequelize.transaction();
   try {
     const user = await User.findByPk(id, { lock: t.LOCK.UPDATE, transaction: t });
@@ -15,6 +15,11 @@ export const updateAdmin = async (req, res) => {
     if (username) user.username = username;
     if (email) user.email = email;
     if (mobile) user.mobile = mobile;
+    if (!fullName) {
+      await t.rollback();
+      return res.status(400).json({ message: 'Full name is required' });
+    }
+    user.fullName = fullName;
     if (branchId !== undefined) {
       if (branchId !== null) {
         const branch = await Branch.findByPk(branchId, { transaction: t, lock: t.LOCK.UPDATE });
@@ -72,15 +77,21 @@ export const createSuperAdmin = async (req, res) => {
   if (existingSuperAdmin) {
     return res.status(403).json({ message: 'Super admin already exists.' });
   }
-  const { username, password, email } = req.body;
+  const { username, password, email, fullName } = req.body;
+  if (!fullName) {
+    return res.status(400).json({ message: 'Full name is required' });
+  }
   const hashedPassword = await hashPassword(password);
-  const user = await User.create({ username, password: hashedPassword, email, role: 'super_admin' });
+  const user = await User.create({ username, password: hashedPassword, email, fullName, role: 'super_admin' });
   res.status(201).json(user);
 };
 
 // Only super admin can create admins (enforce this in route/middleware)
 export const createUser = async (req, res) => {
-  const { username, password, email, mobile, branchId } = req.body;
+  const { username, password, email, mobile, branchId, fullName } = req.body;
+  if (!fullName || !username || !email || !password) {
+    return res.status(400).json({ message: 'Full name, username, email, and password are required' });
+  }
   const t = await sequelize.transaction();
   try {
     let branch = null;
@@ -92,7 +103,7 @@ export const createUser = async (req, res) => {
       }
     }
     const hashedPassword = await hashPassword(password);
-    const user = await User.create({ username, password: hashedPassword, email, role: 'admin', mobile, branchId }, { transaction: t });
+    const user = await User.create({ username, password: hashedPassword, email, fullName, role: 'admin', mobile, branchId }, { transaction: t });
     // If branchId is provided and branch exists, set this user as the branch admin for the branch
     if (branch) {
       branch.branchAdminId = user.id;

@@ -10,6 +10,10 @@ User.init(
       autoIncrement: true,
       primaryKey: true,
     },
+    fullName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     username: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -22,6 +26,7 @@ User.init(
     mobile: {
       type: DataTypes.STRING,
       allowNull: true,
+      unique: true,
     },
     email: {
       type: DataTypes.STRING,
