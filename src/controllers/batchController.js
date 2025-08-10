@@ -25,9 +25,9 @@ export const getBatchesByBranch = async (req, res) => {
 
 // Create a batch (super admin only)
 export const createBatch = async (req, res) => {
-  const { batchCode, name, location, timing, branchId } = req.body;
-  if (!name || !location || !branchId) {
-    return res.status(400).json({ message: 'Batch name, location, and branchId are required.' });
+  const { batchCode, name, location, timing, branchId, cost } = req.body;
+  if (!name || !location || !branchId || cost === undefined) {
+    return res.status(400).json({ message: 'Batch name, location, branchId, and cost are required.' });
   }
   // Check if branch exists
   const branch = await Branch.findByPk(branchId);
@@ -36,7 +36,7 @@ export const createBatch = async (req, res) => {
   }
   const t = await sequelize.transaction();
   try {
-    const batch = await Batch.create({ batchCode, name, location, timing, branchId }, { transaction: t });
+    const batch = await Batch.create({ batchCode, name, location, timing, branchId, cost }, { transaction: t });
     await t.commit();
     res.status(201).json(batch);
   } catch (err) {
@@ -51,7 +51,7 @@ export const createBatch = async (req, res) => {
 // Update a batch (super admin only)
 export const updateBatch = async (req, res) => {
   const { id } = req.params;
-  const { batchCode, name, location, timing, branchId } = req.body;
+  const { batchCode, name, location, timing, branchId, cost } = req.body;
   const t = await sequelize.transaction();
   try {
     const batch = await Batch.findByPk(id, { lock: t.LOCK.UPDATE, transaction: t });
@@ -71,6 +71,7 @@ export const updateBatch = async (req, res) => {
     if (name) batch.name = name;
     if (location) batch.location = location;
     if (timing !== undefined) batch.timing = timing;
+    if (cost !== undefined) batch.cost = cost;
     try {
       await batch.save({ transaction: t });
     } catch (err) {

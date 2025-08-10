@@ -20,6 +20,11 @@ Batch.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    cost: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0.00,
+    },
     location: {
       type: DataTypes.STRING,
       allowNull: false,
