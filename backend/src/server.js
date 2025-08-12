@@ -1,28 +1,27 @@
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
+import express from 'express';
+import sequelize from './models/db.js';
+import userRoutes from './routes/userRoutes.js';
+import branchRoutes from './routes/branchRoutes.js';
+import batchRoutes from './routes/batchRoutes.js';
+import './models/associations.js';
+import studentRoutes from './routes/studentRoutes.js';
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use('/users', userRoutes);
+app.use('/branches', branchRoutes);
+app.use('/batches', batchRoutes);
+app.use('/students', studentRoutes);
 
-// Routes
-app.get('/', (req, res) => {
-  res.json({ message: 'Science Master Portal Backend API' });
-});
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
-});
-
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
-
-module.exports = app;
+(async () => {
+  try {
+    await sequelize.sync(); // Auto-creates DB tables
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error('Unable to connect to the database:', err);
+  }
+})();
