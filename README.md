@@ -4,52 +4,54 @@ A comprehensive web portal for science education and management with student inf
 
 ## Project Structure
 
-This project is organized into separate frontend and backend applications:
+This project follows the standard full-stack application structure with separate frontend and backend applications:
 
 ```
 science-master-portal/
 ├── frontend/           # React frontend application
-│   ├── src/           # Source code
+│   ├── src/           # React source code
+│   │   ├── components/
+│   │   ├── assets/
+│   │   ├── App.jsx
+│   │   └── main.jsx
 │   ├── public/        # Static assets
 │   ├── package.json   # Frontend dependencies
+│   ├── vite.config.js # Vite configuration
 │   └── README.md      # Frontend documentation
-├── backend/           # Node.js backend API (created from restructuring)
-│   ├── src/           # Source code
-│   │   ├── controllers/
-│   │   ├── middleware/
-│   │   ├── models/
-│   │   ├── routes/
-│   │   ├── utils/
-│   │   └── server.js
-│   ├── package.json   # Backend dependencies
-│   └── README.md      # Backend documentation
-├── src/               # Main backend implementation (from feature branches)
-│   ├── controllers/   # Route logic
-│   │   ├── userController.js
-│   │   ├── studentController.js
-│   │   ├── batchController.js
-│   │   ├── branchController.js
-│   │   └── studentInfoController.js
-│   ├── models/        # Sequelize models
-│   │   ├── user.js
-│   │   ├── student.js
-│   │   ├── batch.js
-│   │   ├── branch.js
-│   │   ├── studentPayment.js
-│   │   ├── associations.js
-│   │   └── db.js
-│   ├── routes/        # Express routes
-│   │   ├── userRoutes.js
-│   │   ├── studentRoutes.js
-│   │   ├── batchRoutes.js
-│   │   └── branchRoutes.js
-│   ├── middleware/    # Authentication & validation
-│   │   └── auth.js
-│   ├── utils/         # Utility functions
-│   │   ├── jwt.js
-│   │   └── password.js
-│   └── server.js      # App entry point
-└── README.md          # This file
+├── backend/           # Node.js backend API
+│   ├── src/           # Backend source code
+│   │   ├── controllers/  # Route logic
+│   │   │   ├── userController.js
+│   │   │   ├── studentController.js
+│   │   │   ├── batchController.js
+│   │   │   ├── branchController.js
+│   │   │   ├── studentDueController.js
+│   │   │   └── studentInfoController.js
+│   │   ├── models/       # Sequelize models
+│   │   │   ├── user.js
+│   │   │   ├── student.js
+│   │   │   ├── batch.js
+│   │   │   ├── branch.js
+│   │   │   ├── studentPayment.js
+│   │   │   ├── associations.js
+│   │   │   └── db.js
+│   │   ├── routes/       # Express routes
+│   │   │   ├── userRoutes.js
+│   │   │   ├── studentRoutes.js
+│   │   │   ├── batchRoutes.js
+│   │   │   └── branchRoutes.js
+│   │   ├── middleware/   # Authentication & validation
+│   │   │   └── auth.js
+│   │   ├── utils/        # Utility functions
+│   │   │   ├── jwt.js
+│   │   │   └── password.js
+│   │   └── server.js     # App entry point
+│   ├── package.json      # Backend dependencies
+│   ├── .env.example      # Environment variables template
+│   └── README.md         # Backend documentation
+├── README.md             # This file
+├── .gitignore           # Git ignore rules
+└── Web Portal - Ideate.pdf  # Project documentation
 ```
 
 ## Features
@@ -99,23 +101,7 @@ science-master-portal/
 
 The frontend will be available at `http://localhost:5173` (or the port shown in your terminal).
 
-### Backend Setup (Main Implementation)
-
-1. Install dependencies in the root directory:
-   ```bash
-   npm install
-   ```
-
-2. Set up your PostgreSQL database and update connection details in `src/models/db.js`
-
-3. Start the server:
-   ```bash
-   npm run dev
-   ```
-
-The backend API will be available at `http://localhost:3000` (or the port specified in the server configuration).
-
-### Alternative Backend Setup (Restructured)
+### Backend Setup
 
 1. Navigate to the backend directory:
    ```bash
@@ -132,12 +118,14 @@ The backend API will be available at `http://localhost:3000` (or the port specif
    cp .env.example .env
    ```
 
-4. Update the `.env` file with your configuration.
+4. Update the `.env` file with your database configuration and other environment variables.
 
 5. Start the development server:
    ```bash
    npm run dev
    ```
+
+The backend API will be available at `http://localhost:3000` (or the port specified in your environment configuration).
 
 ## API Endpoints
 
