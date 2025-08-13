@@ -39,8 +39,7 @@ app.get('/api/status', (req, res) => {
   });
 });
 
-// Database connection and routes (commented out for demo)
-/*
+// Database connection and routes
 import sequelize from './models/db.js';
 import userRoutes from './routes/userRoutes.js';
 import branchRoutes from './routes/branchRoutes.js';
@@ -53,18 +52,18 @@ app.use('/api/branches', branchRoutes);
 app.use('/api/batches', batchRoutes);
 app.use('/api/students', studentRoutes);
 
-// Uncomment below to enable database connection
-// (async () => {
-//   try {
-//     await sequelize.authenticate();
-//     console.log('Database connection established successfully.');
-//     await sequelize.sync();
-//     console.log('Database synchronized successfully.');
-//   } catch (err) {
-//     console.error('Unable to connect to the database:', err);
-//   }
-// })();
-*/
+// Enable database connection
+(async () => {
+  try {
+    await sequelize.authenticate();
+    console.log('Database connection established successfully.');
+    await sequelize.sync();
+    console.log('Database synchronized successfully.');
+  } catch (err) {
+    console.error('Unable to connect to the database:', err);
+    console.log('Running in demo mode without database...');
+  }
+})();
 
 // Start server
 app.listen(PORT, () => {

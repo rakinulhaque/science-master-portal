@@ -125,17 +125,34 @@ export const createUser = async (req, res) => {
   }
 };
 
-// Login endpoint
+// Login endpoint - supports both username and phone number
 export const login = async (req, res) => {
-  const { username, password } = req.body;
-  const user = await User.findOne({ where: { username } });
+  const { username, phoneNumber, password } = req.body;
+  
+  // Try to find user by username or phone number
+  const loginField = phoneNumber || username;
+  const user = await User.findOne({ 
+    where: phoneNumber ? { mobile: phoneNumber } : { username: loginField }
+  });
+  
   if (!user) {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
+  
   const isMatch = await comparePassword(password, user.password);
   if (!isMatch) {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
+  
   const token = generateToken(user);
-  res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
+  res.json({ 
+    token, 
+    user: { 
+      id: user.id, 
+      username: user.username, 
+      fullName: user.fullName,
+      role: user.role,
+      branchId: user.branchId
+    } 
+  });
 };
