@@ -27,7 +27,7 @@ Batch.init(
     },
     location: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     timing: {
       type: DataTypes.STRING,
