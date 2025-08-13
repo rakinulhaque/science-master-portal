@@ -17,7 +17,7 @@ router.put('/:id', authenticate, authorizeSuperAdmin, updateBatch);
 router.delete('/:id', authenticate, authorizeSuperAdmin, deleteBatch);
 
 // Any authenticated user can view batches
-router.get('/', authenticate, getAllBatches);
+router.get('/', authenticate, getAllBatches); //filter added for categoryId and branchId
 router.get('/branch/:branchId', authenticate, getBatchesByBranch);
 router.get('/:id', authenticate, getBatchById);
 

@@ -5,6 +5,7 @@ import branchRoutes from './routes/branchRoutes.js';
 import batchRoutes from './routes/batchRoutes.js';
 import './models/associations.js';
 import studentRoutes from './routes/studentRoutes.js';
+import categoryRoutes from './routes/categoryRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,6 +15,7 @@ app.use('/users', userRoutes);
 app.use('/branches', branchRoutes);
 app.use('/batches', batchRoutes);
 app.use('/students', studentRoutes);
+app.use('/categories', categoryRoutes);
 
 (async () => {
   try {
