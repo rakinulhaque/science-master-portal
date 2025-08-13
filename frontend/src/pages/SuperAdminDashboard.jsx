@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../store/slices/authSlice';
 import BranchManagement from '../components/admin/BranchManagement';
 import BatchManagement from '../components/admin/BatchManagement';
+import AdminManagement from '../components/admin/AdminManagement';
 import { 
   ChevronDownIcon, 
   BuildingOfficeIcon,
@@ -32,7 +33,7 @@ const SuperAdminDashboard = () => {
       case 'batches':
         return <BatchManagement />;
       case 'admins':
-        return <div className="p-6 text-center text-gray-500">Admin Management - Coming Soon</div>;
+        return <AdminManagement />;
       default:
         return <BranchManagement />;
     }
