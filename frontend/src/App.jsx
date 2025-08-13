@@ -3,7 +3,6 @@ import { Provider, useSelector } from 'react-redux';
 import { store } from './store';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
-import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 // Role-based redirect component
@@ -13,10 +12,6 @@ const RoleBasedRedirect = () => {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
-  }
-
-  if (user?.role === 'super_admin') {
-    return <Navigate to="/super-admin" replace />;
   }
 
   return <Navigate to="/dashboard" replace />;
@@ -32,16 +27,8 @@ function App() {
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute requiredRole="admin">
+                <ProtectedRoute requiredRoles={["admin", "super_admin"]}>
                   <DashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/super-admin"
-              element={
-                <ProtectedRoute requiredRole="super_admin">
-                  <SuperAdminDashboard />
                 </ProtectedRoute>
               }
             />
