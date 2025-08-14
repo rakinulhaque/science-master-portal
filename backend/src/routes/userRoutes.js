@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAllUsers, createUser, createSuperAdmin, login, updateAdmin, deleteAdmin } from '../controllers/userController.js';
+import { getAllUsers, getUserById, createUser, createSuperAdmin, login, updateAdmin, deleteAdmin } from '../controllers/userController.js';
 import { authenticate, authorizeSuperAdmin } from '../middleware/auth.js';
 
 const router = Router();
@@ -15,10 +15,11 @@ router.post('/createadmins', authenticate, authorizeSuperAdmin, createUser);
 
 
 // Protected: List users (any admin or super admin)
-router.get('/list-users', authenticate, getAllUsers);
+router.get('/users', authenticate, getAllUsers);
+router.get('/user/:id', authenticate, getUserById);
 
 // Protected: Update and delete admin (super admin only)
 router.put('/updateadmin/:id', authenticate, authorizeSuperAdmin, updateAdmin);
-router.delete('/deleteadmin/:id', authenticate, authorizeSuperAdmin, deleteAdmin);
+router.delete('/delete/:id', authenticate, authorizeSuperAdmin, deleteAdmin);
 
 export default router;

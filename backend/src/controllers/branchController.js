@@ -13,6 +13,10 @@ export const updateBranch = async (req, res) => {
       await t.rollback();
       return res.status(404).json({ message: 'Branch not found' });
     }
+    const exists = await Branch.findOne({ where: { name } });
+    if (exists) {
+      return res.status(409).json({ message: 'Branch name already exists' });
+    }
     if (name) branch.name = name;
     if (location !== undefined) branch.location = location;
     if (branchAdminId !== undefined) {
@@ -66,7 +70,7 @@ export const createBranch = async (req, res) => {
   }
   const exists = await Branch.findOne({ where: { name } });
   if (exists) {
-    return res.status(409).json({ message: 'Branch already exists' });
+    return res.status(409).json({ message: 'Branch name already exists' });
   }
   const t = await sequelize.transaction();
   try {
@@ -93,13 +97,23 @@ export const createBranch = async (req, res) => {
 };
 
 // Get all branches with branch admin details
+import { Op } from 'sequelize';
+
 export const getAllBranches = async (req, res) => {
+  const { search } = req.query;
+  let where = {};
+  if (search) {
+    where = {
+      name: { [Op.iLike]: `%${search}%` }
+    };
+  }
   const branches = await Branch.findAll({
+    where,
     include: [
       {
         model: User,
         as: 'branchAdmin',
-        attributes: ['id', 'username', 'email', 'mobile']
+        attributes: ['id', 'fullName', 'email', 'mobile']
       }
     ]
   });
@@ -114,7 +128,7 @@ export const getBranchById = async (req, res) => {
       {
         model: User,
         as: 'branchAdmin',
-        attributes: ['id', 'username', 'email', 'mobile']
+        attributes: ['id', 'fullName', 'email', 'mobile']
       }
     ]
   });

@@ -5,13 +5,16 @@ import sequelize from '../models/db.js';
 
 // Create a student (admin or super admin)
 export const createStudent = async (req, res) => {
-  const { name, phoneNumber, schoolCollege, email, photo, gpa, coachingBranchId, batchIds } = req.body;
-  if (!name || !phoneNumber || !schoolCollege) {
-    return res.status(400).json({ message: 'Name, phone number, and school/college are required.' });
+  const { name, phoneNumber, institution, email, photo, gpa, coachingBranchId, batchIds, discount } = req.body;
+  if (!name || !phoneNumber || !institution) {
+    return res.status(400).json({ message: 'Name, phone number, and institution are required.' });
+  }
+  if (discount !== undefined && isNaN(discount)) {
+    return res.status(400).json({ message: 'Discount must be a number if provided.' });
   }
   const t = await sequelize.transaction();
   try {
-    const student = await Student.create({ name, phoneNumber, schoolCollege, email, photo, gpa, coachingBranchId }, { transaction: t });
+    const student = await Student.create({ name, phoneNumber, institution, email, photo, gpa, coachingBranchId, discount }, { transaction: t });
     // Assign batches if provided
     if (Array.isArray(batchIds) && batchIds.length > 0) {
       const batches = await Batch.findAll({ where: { id: batchIds } });
@@ -28,7 +31,7 @@ export const createStudent = async (req, res) => {
 // Edit student info (admin or super admin, except payment info)
 export const updateStudent = async (req, res) => {
   const { id } = req.params;
-  const { name, phoneNumber, schoolCollege, email, photo, gpa, coachingBranchId, batchIds } = req.body;
+  const { name, phoneNumber, institution, email, photo, gpa, coachingBranchId, batchIds, discount } = req.body;
   const t = await sequelize.transaction();
   try {
     const student = await Student.findByPk(id, { transaction: t });
@@ -38,11 +41,18 @@ export const updateStudent = async (req, res) => {
     }
     if (name) student.name = name;
     if (phoneNumber) student.phoneNumber = phoneNumber;
-    if (schoolCollege) student.schoolCollege = schoolCollege;
+    if (institution) student.institution = institution;
     if (email !== undefined) student.email = email;
     if (photo !== undefined) student.photo = photo;
     if (gpa !== undefined) student.gpa = gpa;
     if (coachingBranchId !== undefined) student.coachingBranchId = coachingBranchId;
+    if (discount !== undefined) {
+      if (isNaN(discount)) {
+        await t.rollback();
+        return res.status(400).json({ message: 'Discount must be a number if provided.' });
+      }
+      student.discount = discount;
+    }
     await student.save({ transaction: t });
     // Update batches if provided
     if (Array.isArray(batchIds)) {

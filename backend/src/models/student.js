@@ -21,7 +21,7 @@ Student.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    schoolCollege: {
+    institution: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -31,13 +31,17 @@ Student.init(
     },
     photo: {
       type: DataTypes.STRING,
-      allowNull: true, // Drive link, optional
+      allowNull: true,
     },
     gpa: {
       type: DataTypes.STRING,
-      allowNull: true, // Optional for later
+      allowNull: true,
     },
-    // batchId removed for many-to-many
+    discount: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      defaultValue: 0.00,
+    },
     coachingBranchId: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -47,14 +51,6 @@ Student.init(
       },
       onDelete: 'CASCADE',
       onUpdate: 'CASCADE',
-    },
-    coachingBatch: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    paymentInfo: {
-      type: DataTypes.JSONB,
-      allowNull: true, // Structure can be defined later
     },
   },
   {
