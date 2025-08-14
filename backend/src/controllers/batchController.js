@@ -4,29 +4,6 @@ import Category from '../models/category.js';
 import sequelize from '../models/db.js';
 
 
-// Get all batches for a specific branch (many-to-many)
-export const getBatchesByBranch = async (req, res) => {
-  const { branchId } = req.params;
-  const branch = await Branch.findByPk(branchId);
-  if (!branch) {
-    return res.status(404).json({ message: 'Branch not found' });
-  }
-  const batches = await branch.getBatches({
-    include: [
-      {
-        model: Branch,
-        attributes: ['id', 'name', 'location']
-      },
-      {
-        model: Category,
-        attributes: ['id', 'name']
-      }
-    ]
-  });
-  res.json(batches);
-};
-
-
 // Create a batch (super admin only, supports multiple branches)
 export const createBatch = async (req, res) => {
   const { batchCode, name, branchIds, cost, categoryId } = req.body;
