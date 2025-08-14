@@ -130,10 +130,17 @@ export const deleteBatch = async (req, res) => {
 
 // Get all batches (any authenticated user)
 export const getAllBatches = async (req, res) => {
-  const { categoryId, branchId } = req.query;
+  const { categoryId, branchId, search } = req.query;
+  const { Op } = await import('sequelize');
   const where = {};
   if (categoryId) {
     where.categoryId = categoryId;
+  }
+  if (search) {
+    where[Op.or] = [
+      { batchCode: { [Op.iLike]: `%${search}%` } },
+      { name: { [Op.iLike]: `%${search}%` } }
+    ];
   }
   const include = [
     {

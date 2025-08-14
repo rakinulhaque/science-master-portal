@@ -43,18 +43,37 @@ export const getStudentWithDue = async (req, res) => {
 };
 
 // Get all students with real-time due calculation
+import { Op } from 'sequelize';
+
 export const getAllStudentsWithDue = async (req, res) => {
+  const { search, institution, batchId, branchId } = req.query;
+  let where = {};
+  if (search) {
+    where[Op.or] = [
+      { name: { [Op.iLike]: `%${search}%` } },
+      { phoneNumber: { [Op.iLike]: `%${search}%` } }
+    ];
+  }
+  if (institution) {
+    where.institution = { [Op.iLike]: `%${institution}%` };
+  }
+  if (branchId) {
+    where.coachingBranchId = branchId;
+  }
+  const include = [
+    {
+      model: Batch,
+      through: { attributes: [] },
+      ...(batchId ? { where: { id: batchId } } : {})
+    },
+    {
+      model: StudentPayment,
+      attributes: ['id', 'amount', 'date', 'note', 'installmentNumber'],
+    },
+  ];
   const students = await Student.findAll({
-    include: [
-      {
-        model: Batch,
-        through: { attributes: [] },
-      },
-      {
-        model: StudentPayment,
-        attributes: ['id', 'amount', 'date', 'note', 'installmentNumber'],
-      },
-    ],
+    where,
+    include
   });
   // Calculate due for each student
   const results = await Promise.all(

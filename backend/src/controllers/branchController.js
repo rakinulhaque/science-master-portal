@@ -97,8 +97,18 @@ export const createBranch = async (req, res) => {
 };
 
 // Get all branches with branch admin details
+import { Op } from 'sequelize';
+
 export const getAllBranches = async (req, res) => {
+  const { search } = req.query;
+  let where = {};
+  if (search) {
+    where = {
+      name: { [Op.iLike]: `%${search}%` }
+    };
+  }
   const branches = await Branch.findAll({
+    where,
     include: [
       {
         model: User,

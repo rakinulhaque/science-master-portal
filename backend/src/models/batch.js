@@ -27,7 +27,6 @@ Batch.init(
       allowNull: false,
       defaultValue: 0.00,
     },
-    // branchId removed for many-to-many relationship
     categoryId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -47,7 +46,6 @@ Batch.init(
   }
 );
 
-// Many-to-many association will be set up in associations.js
 Batch.belongsTo(Category, { foreignKey: 'categoryId' });
 
 export default Batch;

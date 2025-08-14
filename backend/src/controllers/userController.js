@@ -68,8 +68,20 @@ import User from '../models/user.js';
 import { hashPassword, comparePassword } from '../utils/password.js';
 import { generateToken } from '../utils/jwt.js';
 
+import { Op } from 'sequelize';
+
 export const getAllUsers = async (req, res) => {
-  const users = await User.findAll();
+  const { search } = req.query;
+  let where = {};
+  if (search) {
+    where = {
+      [Op.or]: [
+        { fullName: { [Op.iLike]: `%${search}%` } },
+        { mobile: { [Op.iLike]: `%${search}%` } }
+      ]
+    };
+  }
+  const users = await User.findAll({ where });
   // Exclude sensitive fields from all users
   const safeUsers = users.map(u => {
     const { password: _pw, ...safeUser } = u.toJSON();
