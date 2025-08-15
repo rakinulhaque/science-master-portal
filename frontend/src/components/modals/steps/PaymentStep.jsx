@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useCreateStudentMutation, useAddPaymentMutation } from '../../../store/api/studentsApi';
 import { LockClosedIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
-const PaymentStep = ({ data, onUpdate, onBack, onSuccess, onClose }) => {
+const PaymentStep = ({ data, onUpdate, onBack, onSuccess, onClose, user }) => {
   const [discount, setDiscount] = useState(0);
   const [paymentMade, setPaymentMade] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,7 +33,7 @@ const PaymentStep = ({ data, onUpdate, onBack, onSuccess, onClose }) => {
         email: data.email || null,
         photo: data.photo ? 'uploaded_photo.jpg' : null, // In real app, upload photo first
         batchIds: data.selectedBatches.map(batch => batch.id),
-        coachingBranchId: 1, // Default branch ID
+        coachingBranchId: user?.branchId,
       };
 
       const studentResult = await createStudent(studentPayload).unwrap();

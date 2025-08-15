@@ -27,7 +27,6 @@ const DashboardPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
-
   const { data: students = [], isLoading, refetch } = useGetStudentsQuery();
 
   const handleLogout = () => {
@@ -78,7 +77,13 @@ const DashboardPage = () => {
           {!isSuperAdmin && (
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="btn-primary flex items-center"
+              disabled={user?.branchId === null}
+              className={`flex items-center ${
+                user?.branchId === null 
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed py-2 px-4 rounded-lg font-medium' 
+                  : 'btn-primary'
+              }`}
+              title={user?.branchId === null ? 'You must be assigned to a branch to add students' : ''}
             >
               <PlusIcon className="h-5 w-5 mr-2" />
               Add New Entry
@@ -314,6 +319,7 @@ const DashboardPage = () => {
           setIsAddModalOpen(false);
           refetch();
         }}
+        user={user}
       />
     </div>
   );

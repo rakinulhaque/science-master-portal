@@ -5,7 +5,7 @@ import InformationStep from './steps/InformationStep';
 import BatchesStep from './steps/BatchesStep';
 import PaymentStep from './steps/PaymentStep';
 
-const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
+const AddStudentModal = ({ isOpen, onClose, onSuccess, user }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [studentData, setStudentData] = useState({
     name: '',
@@ -86,6 +86,7 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
             onBack={handleBack}
             onSuccess={onSuccess}
             onClose={handleClose}
+            user={user}
           />
         );
       default:
