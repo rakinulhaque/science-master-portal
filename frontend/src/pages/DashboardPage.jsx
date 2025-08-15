@@ -40,8 +40,8 @@ const DashboardPage = () => {
     student.schoolCollege?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const isSuperAdmin = true || user?.role === 'super_admin';
-
+  const isSuperAdmin = user?.role === 'super_admin';
+  
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
     { id: 'branches', label: 'Branch Management', icon: BuildingOfficeIcon },
