@@ -37,7 +37,7 @@ const DashboardPage = () => {
   const filteredStudents = students.filter((student) =>
     student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.phoneNumber?.includes(searchTerm) ||
-    student.schoolCollege?.toLowerCase().includes(searchTerm.toLowerCase())
+    student.institution?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const isSuperAdmin = user?.role === 'super_admin';

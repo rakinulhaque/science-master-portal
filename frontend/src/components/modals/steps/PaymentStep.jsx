@@ -29,7 +29,7 @@ const PaymentStep = ({ data, onUpdate, onBack, onSuccess, onClose }) => {
       const studentPayload = {
         name: data.name,
         phoneNumber: data.phoneNumber,
-        schoolCollege: data.schoolCollege,
+        institution: data.institution,
         email: data.email || null,
         photo: data.photo ? 'uploaded_photo.jpg' : null, // In real app, upload photo first
         batchIds: data.selectedBatches.map(batch => batch.id),

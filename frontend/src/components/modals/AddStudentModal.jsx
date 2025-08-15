@@ -10,7 +10,7 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
   const [studentData, setStudentData] = useState({
     name: '',
     phoneNumber: '',
-    schoolCollege: '',
+    institution: '',
     email: '',
     photo: null,
     selectedBatches: [],
@@ -43,7 +43,7 @@ const AddStudentModal = ({ isOpen, onClose, onSuccess }) => {
     setStudentData({
       name: '',
       phoneNumber: '',
-      schoolCollege: '',
+      institution: '',
       email: '',
       photo: null,
       selectedBatches: [],

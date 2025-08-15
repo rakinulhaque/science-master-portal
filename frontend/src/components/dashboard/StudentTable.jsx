@@ -88,7 +88,7 @@ const StudentTable = ({ students, isLoading }) => {
                   <div className="text-sm text-gray-900">{student.phoneNumber}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{student.schoolCollege}</div>
+                  <div className="text-sm text-gray-900">{student.institution}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">

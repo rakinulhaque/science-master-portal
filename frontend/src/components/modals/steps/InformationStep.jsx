@@ -39,7 +39,7 @@ const InformationStep = ({ data, onUpdate, onNext }) => {
       newErrors.phoneNumber = 'Phone number is required';
     }
     
-    if (!data.schoolCollege?.trim()) {
+    if (!data.institution?.trim()) {
       newErrors.college = 'College is required';
     }
 
@@ -87,8 +87,8 @@ const InformationStep = ({ data, onUpdate, onNext }) => {
       <div>
         <input
           type="text"
-          value={data.schoolCollege || ''}
-          onChange={(e) => handleInputChange('schoolCollege', e.target.value)}
+          value={data.institution || ''}
+          onChange={(e) => handleInputChange('institution', e.target.value)}
           className={`input-field ${errors.college ? 'border-red-300 focus:ring-red-500' : ''}`}
           placeholder="College"
         />
