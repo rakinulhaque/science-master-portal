@@ -17,7 +17,7 @@ Branch.init(
     },
     location: {
       type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false,
     },
     branchAdminId: {
       type: DataTypes.INTEGER,

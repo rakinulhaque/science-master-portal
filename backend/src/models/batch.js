@@ -1,6 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from './db.js';
 import Branch from './branch.js';
+import Category from './category.js';
 
 class Batch extends Model {}
 
@@ -19,25 +20,18 @@ Batch.init(
     name: {
       type: DataTypes.STRING,
       allowNull: false,
+      unique: true,
     },
     cost: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
       defaultValue: 0.00,
     },
-    location: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    timing: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    branchId: {
+    categoryId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'branches',
+        model: 'categories',
         key: 'id',
       },
       onDelete: 'CASCADE',
@@ -52,6 +46,6 @@ Batch.init(
   }
 );
 
-Batch.belongsTo(Branch, { foreignKey: 'branchId' });
+Batch.belongsTo(Category, { foreignKey: 'categoryId' });
 
 export default Batch;

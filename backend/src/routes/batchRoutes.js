@@ -4,8 +4,7 @@ import {
   updateBatch,
   deleteBatch,
   getAllBatches,
-  getBatchById,
-  getBatchesByBranch
+  getBatchById
 } from '../controllers/batchController.js';
 import { authenticate, authorizeSuperAdmin } from '../middleware/auth.js';
 
@@ -17,8 +16,7 @@ router.put('/:id', authenticate, authorizeSuperAdmin, updateBatch);
 router.delete('/:id', authenticate, authorizeSuperAdmin, deleteBatch);
 
 // Any authenticated user can view batches
-router.get('/', authenticate, getAllBatches);
-router.get('/branch/:branchId', authenticate, getBatchesByBranch);
+router.get('/', authenticate, getAllBatches); //filter added for categoryId and branchId
 router.get('/:id', authenticate, getBatchById);
 
 export default router;
