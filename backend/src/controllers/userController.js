@@ -126,8 +126,8 @@ export const createSuperAdmin = async (req, res) => {
 // Only super admin can create admins (enforce this in route/middleware)
 export const createUser = async (req, res) => {
   const { password, email, mobile, branchId, fullName } = req.body;
-  if (!fullName || !email || !password || !mobile) {
-    return res.status(400).json({ message: 'Full name, email, mobile, and password are required' });
+  if (!fullName || !password || !mobile) {
+    return res.status(400).json({ message: 'Full name, mobile, and password are required' });
   }
   const t = await sequelize.transaction();
   try {
