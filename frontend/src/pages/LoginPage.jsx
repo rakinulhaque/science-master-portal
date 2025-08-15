@@ -6,7 +6,7 @@ import { setCredentials } from '../store/slices/authSlice';
 import { PhoneIcon, LockClosedIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 const LoginPage = () => {
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -23,13 +23,13 @@ const LoginPage = () => {
     e.preventDefault();
     setError('');
 
-    if (!phoneNumber || !password) {
+    if (!mobile || !password) {
       setError('Please fill in all fields');
       return;
     }
 
     try {
-      const result = await login({ phoneNumber, password }).unwrap();
+      const result = await login({ mobile, password }).unwrap();
       dispatch(setCredentials(result));
     } catch (err) {
       setError('Login failed. Incorrect phone number or password.');
@@ -62,8 +62,8 @@ const LoginPage = () => {
                 </div>
                 <input
                   type="tel"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value)}
                   className="input-field pl-10"
                   placeholder="01234567890"
                 />
