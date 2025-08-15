@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
-const AdminModal = ({ isOpen, onClose, onSave, admin, branches }) => {
+const AdminModal = ({ isOpen, onClose, onSave, admin, branches, backendError }) => {
   const [formData, setFormData] = useState({
     fullName: '',
     mobile: '',
@@ -10,6 +10,25 @@ const AdminModal = ({ isOpen, onClose, onSave, admin, branches }) => {
     branchId: ''
   });
   const [errors, setErrors] = useState({});
+
+  // Handle backend errors
+  useEffect(() => {
+    if (backendError) {
+      const newErrors = { ...errors };
+      
+      // Check if it's a mobile duplication error
+      if (backendError.toLowerCase().includes('mobile') || 
+          backendError.toLowerCase().includes('phone') ||
+          backendError.toLowerCase().includes('duplicate')) {
+        newErrors.mobile = backendError;
+      } else {
+        // For other errors, show a general error
+        newErrors.general = backendError;
+      }
+      
+      setErrors(newErrors);
+    }
+  }, [backendError]);
 
   useEffect(() => {
     if (admin) {
@@ -38,11 +57,12 @@ const AdminModal = ({ isOpen, onClose, onSave, admin, branches }) => {
       ...prev,
       [name]: value
     }));
-    // Clear error for this field
-    if (errors[name]) {
+    // Clear error for this field and general errors
+    if (errors[name] || errors.general) {
       setErrors(prev => ({
         ...prev,
-        [name]: ''
+        [name]: '',
+        general: '' // Clear general errors when user starts typing
       }));
     }
   };
@@ -119,6 +139,13 @@ const AdminModal = ({ isOpen, onClose, onSave, admin, branches }) => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6">
+          {/* General Error Display */}
+          {errors.general && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-sm text-red-600">{errors.general}</p>
+            </div>
+          )}
+          
           <div className="space-y-4">
             {/* Full Name */}
             <div>
@@ -151,7 +178,7 @@ const AdminModal = ({ isOpen, onClose, onSave, admin, branches }) => {
                 value={formData.mobile}
                 onChange={handleInputChange}
                 className={`input-field ${errors.mobile ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
-                placeholder="Enter mobile number"
+                placeholder="Enter mobile number (i.e. 016XXXXXXXX)"
               />
               {errors.mobile && (
                 <p className="mt-1 text-sm text-red-600">{errors.mobile}</p>

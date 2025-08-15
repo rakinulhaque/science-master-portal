@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { 
   useGetUsersQuery,
   useCreateAdminMutation,
@@ -16,7 +16,8 @@ import {
   BuildingOfficeIcon,
   EnvelopeIcon,
   PhoneIcon,
-  UserCircleIcon
+  UserCircleIcon,
+  MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 
 const AdminManagement = () => {
@@ -24,6 +25,8 @@ const AdminManagement = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState(null);
   const [adminToDelete, setAdminToDelete] = useState(null);
+  const [backendError, setBackendError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const { data: users = [], isLoading, refetch } = useGetUsersQuery();
   const { data: branches = [] } = useGetBranchesQuery();
@@ -31,16 +34,34 @@ const AdminManagement = () => {
   const [updateAdmin] = useUpdateAdminMutation();
   const [deleteAdmin] = useDeleteAdminMutation();
 
-  // Filter to show only admins (not super_admin)
-  const admins = users.filter(user => user.role === 'admin');
+  // Filter to show only admins (not super_admin) and apply search
+  const admins = useMemo(() => {
+    const adminUsers = users.filter(user => user.role === 'admin');
+    
+    if (!searchTerm) return adminUsers;
+    
+    return adminUsers.filter(admin => {
+      const searchLower = searchTerm.toLowerCase();
+      if(admin.branchId !== null && admin.branchId !== '') {
+        branchName = getBranchName(admin.branchId).toLowerCase();
+}     
+      return (
+        admin.fullName?.toLowerCase().includes(searchLower) ||
+        admin.mobile?.toLowerCase().includes(searchLower) ||
+        (admin.branchId && branchName.includes(searchLower))
+      );
+    });
+  }, [users, searchTerm, branches]);
 
   const handleCreateAdmin = () => {
     setSelectedAdmin(null);
+    setBackendError(null);
     setIsModalOpen(true);
   };
 
   const handleEditAdmin = (admin) => {
     setSelectedAdmin(admin);
+    setBackendError(null);
     setIsModalOpen(true);
   };
 
@@ -51,6 +72,7 @@ const AdminManagement = () => {
 
   const handleModalSave = async (adminData) => {
     try {
+      setBackendError(null);
       if (selectedAdmin) {
         await updateAdmin({ id: selectedAdmin.id, ...adminData }).unwrap();
       } else {
@@ -60,6 +82,19 @@ const AdminManagement = () => {
       refetch();
     } catch (error) {
       console.error('Error saving admin:', error);
+      
+      // Extract error message from backend response
+      let errorMessage = 'An error occurred while saving the admin.';
+      
+      if (error?.data?.message) {
+        errorMessage = error.data.message;
+      } else if (error?.data?.error) {
+        errorMessage = error.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      setBackendError(errorMessage);
     }
   };
 
@@ -75,6 +110,11 @@ const AdminManagement = () => {
   };
 
   const getBranchName = (branchId) => {
+    // Handle null, undefined, or empty branchId
+    if (!branchId) {
+      return 'Unassigned';
+    }
+    
     const branch = branches.find(branch => branch.id === branchId);
     return branch ? branch.name : 'Unassigned';
   };
@@ -113,95 +153,131 @@ const AdminManagement = () => {
         </div>
       </div>
 
-      {/* Admins Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {admins.map((admin) => (
-          <div key={admin.id} className="card hover:shadow-lg transition-shadow">
-            <div className="p-6">
-              {/* Admin Header */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <UserCircleIcon className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-lg font-semibold text-gray-900">{admin.fullName}</h3>
-                    <p className="text-sm text-gray-500">@{admin.username}</p>
-                  </div>
-                </div>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => handleEditAdmin(admin)}
-                    className="p-2 text-gray-400 hover:text-primary-600 transition-colors"
-                  >
-                    <PencilIcon className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteAdmin(admin)}
-                    className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                  >
-                    <TrashIcon className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Admin Details */}
-              <div className="space-y-3">
-                <div className="flex items-center text-sm text-gray-600">
-                  <EnvelopeIcon className="h-4 w-4 mr-2" />
-                  <span className="truncate">{admin.email}</span>
-                </div>
-
-                {admin.mobile && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <PhoneIcon className="h-4 w-4 mr-2" />
-                    <span>{admin.mobile}</span>
-                  </div>
-                )}
-                
-                <div className="flex items-center text-sm text-gray-600">
-                  <BuildingOfficeIcon className="h-4 w-4 mr-2" />
-                  <span className="font-medium">Branch:</span>
-                  <span className="ml-1">{getBranchName(admin.branchId)}</span>
-                </div>
-              </div>
-
-              {/* Admin Status */}
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <div className="flex items-center justify-between">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    admin.branchId 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {admin.branchId ? 'Assigned' : 'Unassigned'}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    ID: {admin.id}
-                  </span>
-                </div>
-                <div className="mt-2 text-xs text-gray-500">
-                  Created: {new Date(admin.createdAt).toLocaleDateString()}
-                </div>
-              </div>
-            </div>
+      {/* Search Bar */}
+      <div className="mb-6">
+        <div className="relative max-w-md">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
           </div>
-        ))}
+          <input
+            type="text"
+            placeholder="Search by name, phone, or branch..."
+            className="input-field pl-10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        {searchTerm && (
+          <p className="text-sm text-gray-600 mt-2">
+            Found {admins.length} admin{admins.length !== 1 ? 's' : ''} matching "{searchTerm}"
+          </p>
+        )}
+      </div>
+
+      {/* Admins List */}
+      <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+        {admins.length > 0 ? (
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Admin
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Contact
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Branch
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {admins.map((admin) => (
+                <tr key={admin.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                        <UserCircleIcon className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">{admin.fullName}</div>
+                        <div className="text-sm text-gray-500">ID: {admin.id}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{admin.email}</div>
+                    {admin.mobile && (
+                      <div className="text-sm text-gray-500">{admin.mobile}</div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{getBranchName(admin.branchId)}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      admin.branchId && admin.branchId !== '' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {admin.branchId && admin.branchId !== '' ? 'Assigned' : 'Unassigned'}
+                    </span>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Created: {new Date(admin.createdAt).toLocaleDateString()}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEditAdmin(admin)}
+                        className="text-indigo-600 hover:text-indigo-900 p-1"
+                        title="Edit admin"
+                      >
+                        <PencilIcon className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteAdmin(admin)}
+                        className="text-red-600 hover:text-red-900 p-1"
+                        title="Delete admin"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : null}
 
         {/* Empty State */}
         {admins.length === 0 && (
-          <div className="col-span-full">
-            <div className="text-center py-12">
-              <UsersIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No admins found</h3>
-              <p className="text-gray-500 mb-4">Get started by creating your first admin.</p>
+          <div className="text-center py-12">
+            <UsersIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {searchTerm ? 'No admins found' : 'No admins yet'}
+            </h3>
+            <p className="text-gray-500 mb-4">
+              {searchTerm 
+                ? `No admins match your search "${searchTerm}". Try a different search term.`
+                : 'Get started by creating your first admin.'
+              }
+            </p>
+            {!searchTerm && (
               <button
                 onClick={handleCreateAdmin}
                 className="btn-primary"
               >
-                Create First Admin
+                <PlusIcon className="h-5 w-5 mr-2" />
+                Add First Admin
               </button>
-            </div>
+            )}
           </div>
         )}
       </div>
@@ -213,6 +289,7 @@ const AdminManagement = () => {
         onSave={handleModalSave}
         admin={selectedAdmin}
         branches={branches}
+        backendError={backendError}
       />
 
       {/* Delete Confirmation Modal */}
