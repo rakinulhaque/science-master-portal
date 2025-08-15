@@ -4,7 +4,6 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 const AdminModal = ({ isOpen, onClose, onSave, admin, branches }) => {
   const [formData, setFormData] = useState({
     fullName: '',
-    email: '',
     mobile: '',
     password: '',
     confirmPassword: '',
@@ -16,7 +15,6 @@ const AdminModal = ({ isOpen, onClose, onSave, admin, branches }) => {
     if (admin) {
       setFormData({
         fullName: admin.fullName || '',
-        email: admin.email || '',
         mobile: admin.mobile || '',
         password: '',
         confirmPassword: '',
@@ -25,7 +23,6 @@ const AdminModal = ({ isOpen, onClose, onSave, admin, branches }) => {
     } else {
       setFormData({
         fullName: '',
-        email: '',
         mobile: '',
         password: '',
         confirmPassword: '',
@@ -63,10 +60,6 @@ const AdminModal = ({ isOpen, onClose, onSave, admin, branches }) => {
       newErrors.mobile = 'Mobile number is invalid';
     }
 
-    if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
-    }
-
     // Password validation only for new admins or when password is provided for edit
     if (!admin || formData.password) {
       if (!formData.password) {
@@ -89,7 +82,6 @@ const AdminModal = ({ isOpen, onClose, onSave, admin, branches }) => {
     if (validateForm()) {
       const submitData = {
         fullName: formData.fullName.trim(),
-        email: formData.email.trim(),
         mobile: formData.mobile.trim(),
         branchId: formData.branchId || null
       };
@@ -163,25 +155,6 @@ const AdminModal = ({ isOpen, onClose, onSave, admin, branches }) => {
               />
               {errors.mobile && (
                 <p className="mt-1 text-sm text-red-600">{errors.mobile}</p>
-              )}
-            </div>
-
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className={`input-field ${errors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
-                placeholder="Enter email address"
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
               )}
             </div>
 
