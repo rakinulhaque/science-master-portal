@@ -166,8 +166,8 @@ export const createUser = async (req, res) => {
 
 // Login endpoint (now uses mobile instead of username)
 export const login = async (req, res) => {
-  const { mobile, password } = req.body;
-  const user = await User.findOne({ where: { mobile } });
+  const { phoneNumber, password } = req.body;
+  const user = await User.findOne({ where: { mobile: phoneNumber } });
   if (!user) {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
