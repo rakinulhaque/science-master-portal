@@ -27,7 +27,15 @@ function App() {
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute requiredRoles={["admin", "super_admin"]}>
+                <ProtectedRoute requiredRoles={['admin', 'super_admin']}>
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard/:section"
+              element={
+                <ProtectedRoute requiredRoles={['admin', 'super_admin']}>
                   <DashboardPage />
                 </ProtectedRoute>
               }
