@@ -4,7 +4,6 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 const AdminModal = ({ isOpen, onClose, onSave, admin, branches }) => {
   const [formData, setFormData] = useState({
     fullName: '',
-    username: '',
     email: '',
     mobile: '',
     password: '',
@@ -17,7 +16,6 @@ const AdminModal = ({ isOpen, onClose, onSave, admin, branches }) => {
     if (admin) {
       setFormData({
         fullName: admin.fullName || '',
-        username: admin.username || '',
         email: admin.email || '',
         mobile: admin.mobile || '',
         password: '',
@@ -27,7 +25,6 @@ const AdminModal = ({ isOpen, onClose, onSave, admin, branches }) => {
     } else {
       setFormData({
         fullName: '',
-        username: '',
         email: '',
         mobile: '',
         password: '',
@@ -60,13 +57,13 @@ const AdminModal = ({ isOpen, onClose, onSave, admin, branches }) => {
       newErrors.fullName = 'Full name is required';
     }
 
-    if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
+    if (!formData.mobile.trim()) {
+      newErrors.mobile = 'Mobile number is required';
+    } else if (!/^\+?[\d\s-()]+$/.test(formData.mobile)) {
+      newErrors.mobile = 'Mobile number is invalid';
     }
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
     }
 
@@ -83,11 +80,6 @@ const AdminModal = ({ isOpen, onClose, onSave, admin, branches }) => {
       }
     }
 
-    // Mobile validation (optional but if provided, should be valid)
-    if (formData.mobile && !/^\+?[\d\s-()]+$/.test(formData.mobile)) {
-      newErrors.mobile = 'Mobile number is invalid';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -97,9 +89,8 @@ const AdminModal = ({ isOpen, onClose, onSave, admin, branches }) => {
     if (validateForm()) {
       const submitData = {
         fullName: formData.fullName.trim(),
-        username: formData.username.trim(),
         email: formData.email.trim(),
-        mobile: formData.mobile.trim() || null,
+        mobile: formData.mobile.trim(),
         branchId: formData.branchId || null
       };
 
@@ -156,48 +147,10 @@ const AdminModal = ({ isOpen, onClose, onSave, admin, branches }) => {
               )}
             </div>
 
-            {/* Username */}
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-                Username *
-              </label>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                value={formData.username}
-                onChange={handleInputChange}
-                className={`input-field ${errors.username ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
-                placeholder="Enter username"
-              />
-              {errors.username && (
-                <p className="mt-1 text-sm text-red-600">{errors.username}</p>
-              )}
-            </div>
-
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email *
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className={`input-field ${errors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
-                placeholder="Enter email address"
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-              )}
-            </div>
-
             {/* Mobile */}
             <div>
               <label htmlFor="mobile" className="block text-sm font-medium text-gray-700 mb-1">
-                Mobile Number
+                Mobile Number *
               </label>
               <input
                 type="tel"
@@ -210,6 +163,25 @@ const AdminModal = ({ isOpen, onClose, onSave, admin, branches }) => {
               />
               {errors.mobile && (
                 <p className="mt-1 text-sm text-red-600">{errors.mobile}</p>
+              )}
+            </div>
+
+            {/* Email */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className={`input-field ${errors.email ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
+                placeholder="Enter email address"
+              />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
               )}
             </div>
 
