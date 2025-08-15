@@ -311,6 +311,7 @@ const DashboardPage = () => {
           setIsAddModalOpen(false);
           refetch();
         }}
+        user={user}
       />
     </div>
   );
