@@ -15,31 +15,28 @@ const BatchesStep = ({ data, onUpdate, onNext, onBack }) => {
   // Set default category to first available category
   useEffect(() => {
     if (categories.length > 0 && !selectedCategory) {
-      setSelectedCategory(categories[0].name);
+      setSelectedCategory(categories[0].id);
     }
   }, [categories, selectedCategory]);
 
   // Mock data for demonstration (replace with actual API data)
-  const mockBatches = [
-    { id: 1, name: 'Engineering Admission 2025 Batch 1', code: 'EngA25B1', cost: 7500, category: 'Engineering' },
-    { id: 2, name: 'Engineering Admission 2025 Batch 2', code: 'EngA25B2', cost: 9000, category: 'Engineering' },
-    { id: 3, name: 'Engineering Admission 2025 Batch 3', code: 'EngA25B3', cost: 11500, category: 'Engineering' },
-    { id: 4, name: 'Engineering Admission 2025 Batch 4', code: 'EngA25B4', cost: 13000, category: 'Engineering' },
-    { id: 5, name: 'University Admission 2025 Batch 1', code: 'UniA25B1', cost: 7500, category: 'University' },
-    { id: 6, name: 'University Admission 2025 Batch 2', code: 'UniA25B2', cost: 9000, category: 'University' },
-    { id: 7, name: 'University Admission 2025 Batch 3', code: 'UniA25B3', cost: 11500, category: 'University' },
-    { id: 8, name: 'University Admission 2025 Batch 4', code: 'UniA25B4', cost: 13000, category: 'University' },
-  ];
 
-  const availableBatches = batches.length > 0 ? batches : mockBatches;
+  const availableBatches = batches;
+  console.log('Available batches:', availableBatches);
+  
+  let filteredBatches = availableBatches;
+  filteredBatches = availableBatches.filter((batch) => {
+    const matchesSearch =
+      batch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      batch.batchCode.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      !selectedCategory || batch.categoryId === selectedCategory;
 
-  const filteredBatches = availableBatches.filter(batch => {
-    const matchesSearch = batch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         batch.code.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !selectedCategory || batch.category === selectedCategory;
-    const matchesFilter = showSelectedOnly ? 
-      data.selectedBatches.some(selected => selected.id === batch.id) : true;
-    
+      const matchesFilter = showSelectedOnly
+      ? data.selectedBatches.some((selected) => selected.id === batch.id)
+      : true;
+      console.log('batch:', batch );
+
     return matchesSearch && matchesCategory && matchesFilter;
   });
 
@@ -58,7 +55,8 @@ const BatchesStep = ({ data, onUpdate, onNext, onBack }) => {
   };
 
   const calculateTotals = () => {
-    const totalDue = data.selectedBatches.reduce((sum, batch) => sum + batch.cost, 0);
+    const totalDue = data.selectedBatches.reduce((sum, batch) => +sum + parseInt(batch.cost), 0);
+    console.log('Total due:', totalDue);
     return { totalDue, initialDue: totalDue };
   };
 
@@ -84,9 +82,9 @@ const BatchesStep = ({ data, onUpdate, onNext, onBack }) => {
               categories.map((category) => (
                 <button
                   key={category.id}
-                  onClick={() => setSelectedCategory(category.name)}
+                  onClick={() => setSelectedCategory(category.id)}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    selectedCategory === category.name
+                    selectedCategory === category.id
                       ? 'bg-primary-100 text-primary-700 border border-primary-200'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
@@ -165,12 +163,12 @@ const BatchesStep = ({ data, onUpdate, onNext, onBack }) => {
                   />
                   <div>
                     <div className="font-medium text-gray-900">{batch.name}</div>
-                    <div className="text-sm text-gray-500">({batch.code})</div>
+                    <div className="text-sm text-gray-500">({batch.batchCode})</div>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="font-medium text-gray-900">
-                    {batch.cost.toLocaleString()} BDT
+                    {Number(batch.cost).toLocaleString()} BDT
                   </div>
                 </div>
               </div>
@@ -194,15 +192,15 @@ const BatchesStep = ({ data, onUpdate, onNext, onBack }) => {
             Selected Batches ({data.selectedBatches.length})
           </div>
           <div className="text-sm text-gray-800">
-            {data.selectedBatches.map(batch => batch.code).join(', ')}
+            {data.selectedBatches.map(batch => batch.batchCode).join(', ')}
           </div>
           <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-200">
             <span className="text-sm font-medium">Due Now</span>
-            <span className="font-semibold">{totalDue.toLocaleString()} BDT</span>
+            <span className="font-semibold">{Number(totalDue).toLocaleString()} BDT</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">Initial Due</span>
-            <span className="font-semibold">{initialDue.toLocaleString()} BDT</span>
+            <span className="font-semibold">{Number(initialDue).toLocaleString()} BDT</span>
           </div>
         </div>
       )}

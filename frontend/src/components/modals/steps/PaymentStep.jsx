@@ -12,7 +12,7 @@ const PaymentStep = ({ data, onUpdate, onBack, onSuccess, onClose, user }) => {
   const [addPayment] = useAddPaymentMutation();
 
   const calculateTotals = () => {
-    const initialDue = data.selectedBatches.reduce((sum, batch) => sum + batch.cost, 0);
+    const initialDue = data.selectedBatches.reduce((sum, batch) => sum + parseInt(batch.cost), 0);
     const totalDue = initialDue - discount;
     const remainingDue = totalDue - paymentMade;
     
