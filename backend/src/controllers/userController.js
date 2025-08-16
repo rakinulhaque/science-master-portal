@@ -127,7 +127,7 @@ export const createSuperAdmin = async (req, res) => {
 export const createUser = async (req, res) => {
   const { password, email, mobile, branchId, fullName } = req.body;
   if (!fullName || !password || !mobile) {
-    return res.status(400).json({ message: 'Full name, email, mobile, and password are required' });
+    return res.status(400).json({ message: 'Full name, mobile, and password are required' });
   }
   const t = await sequelize.transaction();
   try {
