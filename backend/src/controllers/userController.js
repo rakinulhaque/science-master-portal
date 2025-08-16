@@ -171,10 +171,12 @@ export const login = async (req, res) => {
   if (!user) {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
+  
   const isMatch = await comparePassword(password, user.password);
   if (!isMatch) {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
+  
   const token = generateToken(user);
   // Exclude sensitive fields from response
   const { password: _pw, ...safeUser } = user.toJSON();

@@ -15,7 +15,7 @@ router.post('/createadmins', authenticate, authorizeSuperAdmin, createUser);
 
 
 // Protected: List users (any admin or super admin)
-router.get('/users', authenticate, getAllUsers);
+router.get('/list-users', authenticate, getAllUsers);
 router.get('/user/:id', authenticate, getUserById);
 
 // Protected: Update and delete admin (super admin only)

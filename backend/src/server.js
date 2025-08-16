@@ -1,4 +1,6 @@
+import 'dotenv/config';
 import express from 'express';
+import cors from 'cors';
 import sequelize from './models/db.js';
 import userRoutes from './routes/userRoutes.js';
 import branchRoutes from './routes/branchRoutes.js';
@@ -10,6 +12,14 @@ import './models/associations.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Configure CORS to allow requests from frontend
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 app.use(express.json());
 app.use('/users', userRoutes);
