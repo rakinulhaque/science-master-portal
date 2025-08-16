@@ -8,6 +8,7 @@ import AddStudentModal from '../components/modals/AddStudentModal';
 import BranchManagement from '../components/admin/BranchManagement';
 import BatchManagement from '../components/admin/BatchManagement';
 import AdminManagement from '../components/admin/AdminManagement';
+import StudentManagement from '../components/admin/StudentManagement';
 import {
   MagnifyingGlassIcon,
   FunnelIcon,
@@ -55,14 +56,16 @@ const DashboardPage = () => {
       student.institution?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const isSuperAdmin = user?.role === 'super_admin';
-
+    const isSuperAdmin = user?.role === 'super_admin';
+  const isAdmin = user?.role === 'admin';
+  
   const sidebarItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
-    { id: 'branches', label: 'Branch Management', icon: BuildingOfficeIcon },
-    { id: 'batches', label: 'Batch Management', icon: AcademicCapIcon },
-    { id: 'admins', label: 'Admin Management', icon: UsersIcon },
-  ];
+    { id: 'dashboard', label: 'Dashboard', icon: HomeIcon, access: ['super_admin'] },
+    { id: 'students', label: 'Student Management', icon: UsersIcon, access: ['super_admin', 'admin'] },
+    { id: 'branches', label: 'Branch Management', icon: BuildingOfficeIcon, access: ['super_admin'] },
+    { id: 'batches', label: 'Batch Management', icon: AcademicCapIcon, access: ['super_admin'] },
+    { id: 'admins', label: 'Admin Management', icon: UsersIcon, access: ['super_admin'] },
+  ].filter(item => item.access.includes(user?.role));
 
   const renderDashboardContent = () => (
     <div className="px-6 py-6">
@@ -150,6 +153,8 @@ const DashboardPage = () => {
 
   const renderContent = () => {
     switch (activeSection) {
+      case 'students':
+        return <StudentManagement />;
       case 'branches':
         return <BranchManagement />;
       case 'batches':
