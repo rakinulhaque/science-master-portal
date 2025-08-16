@@ -1,14 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useGetBatchesQuery } from '../../../store/api/batchesApi';
+import { useGetCategoriesQuery } from '../../../store/api/categoriesApi';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
 const BatchesStep = ({ data, onUpdate, onNext, onBack }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Engineering');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [showSelectedOnly, setShowSelectedOnly] = useState(false);
   const [error, setError] = useState('');
 
   const { data: batches = [], isLoading } = useGetBatchesQuery();
+  const { data: categories = [], isLoading: categoriesLoading } = useGetCategoriesQuery();
+
+  // Set default category to first available category
+  useEffect(() => {
+    if (categories.length > 0 && !selectedCategory) {
+      setSelectedCategory(categories[0].name);
+    }
+  }, [categories, selectedCategory]);
 
   // Mock data for demonstration (replace with actual API data)
   const mockBatches = [
@@ -27,7 +36,7 @@ const BatchesStep = ({ data, onUpdate, onNext, onBack }) => {
   const filteredBatches = availableBatches.filter(batch => {
     const matchesSearch = batch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          batch.code.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = batch.category === selectedCategory;
+    const matchesCategory = !selectedCategory || batch.category === selectedCategory;
     const matchesFilter = showSelectedOnly ? 
       data.selectedBatches.some(selected => selected.id === batch.id) : true;
     
@@ -69,26 +78,23 @@ const BatchesStep = ({ data, onUpdate, onNext, onBack }) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setSelectedCategory('Engineering')}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                selectedCategory === 'Engineering'
-                  ? 'bg-primary-100 text-primary-700 border border-primary-200'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Engineering
-            </button>
-            <button
-              onClick={() => setSelectedCategory('University')}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                selectedCategory === 'University'
-                  ? 'bg-primary-100 text-primary-700 border border-primary-200'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              University
-            </button>
+            {categoriesLoading ? (
+              <div className="animate-pulse bg-gray-200 h-8 w-24 rounded-full"></div>
+            ) : (
+              categories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.name)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    selectedCategory === category.name
+                      ? 'bg-primary-100 text-primary-700 border border-primary-200'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {category.name}
+                </button>
+              ))
+            )}
           </div>
         </div>
         <div className="text-right">

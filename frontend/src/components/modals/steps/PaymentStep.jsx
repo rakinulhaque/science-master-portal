@@ -34,13 +34,23 @@ const PaymentStep = ({ data, onUpdate, onBack, onSuccess, onClose, user }) => {
         photo: data.photo ? 'uploaded_photo.jpg' : null, // In real app, upload photo first
         batchIds: data.selectedBatches.map(batch => batch.id),
         coachingBranchId: user?.branchId,
+        discount: discount > 0 ? discount : 0, // Add discount to student creation
       };
 
       const studentResult = await createStudent(studentPayload).unwrap();
       
       // Add payment if any payment was made
       if (paymentMade > 0) {
-        await addPayment({
+        console.log('Adding payment:', {
+          studentId: studentResult.id,
+          paymentData: {
+            amount: paymentMade,
+            date: new Date().toISOString().split('T')[0],
+            note: 'Initial payment',
+          }
+        });
+        
+        const paymentResult = await addPayment({
           studentId: studentResult.id,
           paymentData: {
             amount: paymentMade,
@@ -48,6 +58,8 @@ const PaymentStep = ({ data, onUpdate, onBack, onSuccess, onClose, user }) => {
             note: 'Initial payment',
           }
         }).unwrap();
+        
+        console.log('Payment result:', paymentResult);
       }
 
       // Show success state
@@ -59,8 +71,11 @@ const PaymentStep = ({ data, onUpdate, onBack, onSuccess, onClose, user }) => {
       }, 2000);
       
     } catch (error) {
-      console.error('Error creating student:', error);
-      alert('Failed to create student. Please try again.');
+      console.error('Error creating student or payment:', error);
+      if (error.data) {
+        console.error('Error details:', error.data);
+      }
+      alert(`Failed to create student or process payment: ${error.data?.message || error.message || 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
     }

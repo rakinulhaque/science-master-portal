@@ -4,6 +4,7 @@ import { studentsApi } from './api/studentsApi';
 import { batchesApi } from './api/batchesApi';
 import { branchesApi } from './api/branchesApi';
 import { usersApi } from './api/usersApi';
+import { categoriesApi } from './api/categoriesApi';
 import authSlice from './slices/authSlice';
 
 export const store = configureStore({
@@ -14,6 +15,7 @@ export const store = configureStore({
     [batchesApi.reducerPath]: batchesApi.reducer,
     [branchesApi.reducerPath]: branchesApi.reducer,
     [usersApi.reducerPath]: usersApi.reducer,
+    [categoriesApi.reducerPath]: categoriesApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -21,6 +23,7 @@ export const store = configureStore({
       studentsApi.middleware,
       batchesApi.middleware,
       branchesApi.middleware,
-      usersApi.middleware
+      usersApi.middleware,
+      categoriesApi.middleware
     ),
 });
