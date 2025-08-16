@@ -4,6 +4,7 @@ import { useGetStudentsQuery } from '../../store/api/studentsApi';
 import StudentTable from '../dashboard/StudentTable';
 import AddStudentModal from '../modals/AddStudentModal';
 import { 
+  UsersIcon,
   MagnifyingGlassIcon, 
   FunnelIcon, 
   PlusIcon
@@ -28,8 +29,9 @@ const StudentManagement = () => {
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900">
-              Student Management
+            <h2 className="text-2xl font-semibold text-gray-900 flex items-center">
+              <UsersIcon className="h-8 w-8 mr-3 text-primary-600" />
+                    Student Management
             </h2>
             <p className="text-sm text-gray-600 mt-1">
               {filteredStudents.length} students found

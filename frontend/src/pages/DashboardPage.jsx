@@ -278,6 +278,8 @@ const DashboardPage = () => {
                           ? 'Batch Management'
                           : activeSection === 'admins'
                           ? 'Admin Management'
+                          : activeSection === 'students'
+                          ? 'Stundent Management'
                           : 'Dashboard'}
                       </h1>
                     </div>
