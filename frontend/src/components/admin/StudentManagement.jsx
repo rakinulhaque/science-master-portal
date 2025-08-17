@@ -85,7 +85,7 @@ const StudentManagement = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="input-field pl-10"
-              placeholder="Search for a student"
+              placeholder="Search students by name, phone number, or college"
             />
           </div>
         </div>
