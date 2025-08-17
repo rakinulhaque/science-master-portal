@@ -108,6 +108,7 @@ const StudentManagement = () => {
           pagination={pagination}
           currentPage={currentPage}
           onPageChange={setCurrentPage}
+          user={user}
         />
       </div>
 
