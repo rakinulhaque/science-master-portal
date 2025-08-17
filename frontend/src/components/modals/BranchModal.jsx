@@ -79,10 +79,7 @@ const BranchModal = ({ isOpen, onClose, onSave, branch, users }) => {
           <h3 className="text-lg font-semibold text-gray-900">
             {branch ? 'Edit Branch' : 'Create New Branch'}
           </h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <XMarkIcon className="h-6 w-6" />
           </button>
         </div>
@@ -101,12 +98,12 @@ const BranchModal = ({ isOpen, onClose, onSave, branch, users }) => {
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className={`input-field ${errors.name ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''}`}
+                className={`input-field ${
+                  errors.name ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : ''
+                }`}
                 placeholder="Enter branch name"
               />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-              )}
+              {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
             </div>
 
             {/* Location */}
@@ -127,7 +124,10 @@ const BranchModal = ({ isOpen, onClose, onSave, branch, users }) => {
 
             {/* Branch Admin */}
             <div>
-              <label htmlFor="branchAdminId" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="branchAdminId"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Branch Administrator
               </label>
               <select
@@ -138,9 +138,9 @@ const BranchModal = ({ isOpen, onClose, onSave, branch, users }) => {
                 className="input-field"
               >
                 <option value="">Select an administrator</option>
-                {availableAdmins.map(admin => (
+                {availableAdmins.map((admin) => (
                   <option key={admin.id} value={admin.id}>
-                    {admin.fullName || admin.username} ({admin.email})
+                    {admin.fullName || admin.username} ({admin.mobile})
                   </option>
                 ))}
               </select>
@@ -154,17 +154,10 @@ const BranchModal = ({ isOpen, onClose, onSave, branch, users }) => {
 
           {/* Footer */}
           <div className="flex justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-secondary"
-            >
+            <button type="button" onClick={onClose} className="btn-secondary">
               Cancel
             </button>
-            <button
-              type="submit"
-              className="btn-primary"
-            >
+            <button type="submit" className="btn-primary">
               {branch ? 'Update Branch' : 'Create Branch'}
             </button>
           </div>
