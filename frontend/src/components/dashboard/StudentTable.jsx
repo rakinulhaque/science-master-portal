@@ -1,4 +1,5 @@
 import { PencilIcon, DocumentIcon } from '@heroicons/react/24/outline';
+import { generateStudentPDF } from '../../utils/pdfGenerator';
 
 const StudentTable = ({ students, isLoading }) => {
   if (isLoading) {
@@ -31,6 +32,27 @@ const StudentTable = ({ students, isLoading }) => {
   const calculateTotalDue = (batches) => {
     if (!batches || batches.length === 0) return 0;
     return batches.reduce((total, batch) => total + (parseFloat(batch.cost) || 0), 0);
+  };
+
+  const handleDownloadPDF = async (student) => {
+    try {
+      // Prepare payment history
+      const payments = student.StudentPayments || [];
+      
+      // Prepare due information
+      const dueInfo = {
+        totalCost: student.initialDue || 0,
+        discount: student.discount || 0,
+        totalPaid: payments.reduce((sum, payment) => sum + (parseFloat(payment.amount) || 0), 0),
+        finalDue: student.finalDue || 0
+      };
+      
+      // Generate and download PDF
+      await generateStudentPDF(student, payments, dueInfo);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    }
   };
 
   return (
@@ -112,10 +134,15 @@ const StudentTable = ({ students, isLoading }) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex items-center space-x-2">
-                    <button className="text-gray-400 hover:text-gray-600">
+                    {/* <button className="text-gray-400 hover:text-gray-600">
                       <PencilIcon className="h-4 w-4" />
-                    </button>
-                    <button className="text-gray-400 hover:text-gray-600">
+                    </button> */}
+                    <button 
+                      onClick={() => handleDownloadPDF(student)}
+                      className="text-gray-400 hover:text-primary-600 flex items-center space-x-1 transition-colors"
+                      title="Download PDF Report"
+                    >
+                      <span>PDF</span>
                       <DocumentIcon className="h-4 w-4" />
                     </button>
                   </div>
