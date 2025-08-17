@@ -11,6 +11,7 @@ import {
 import { Dialog } from '@headlessui/react';
 import { generateStudentPDF } from '../../utils/pdfGenerator';
 import PaymentStep from '../modals/steps/PaymentStep'; // reusing your existing step
+import DeleteConfirmModal from '../modals/DeleteConfirmModal';
 
 const StudentTable = ({
   students,
@@ -339,47 +340,46 @@ const StudentTable = ({
     );
   };
 
-  // Delete confirm modal
-  const DeleteConfirmModal = ({ student, onClose }) => {
-    if (!student) return null;
-    const handleConfirm = async () => {
-      try {
-        await onDeleteStudent?.(student); // parent handles API + refetch
-        onClose();
-      } catch (e) {
-        console.error(e);
-      }
-    };
-    return (
-      <Dialog open={!!student} onClose={onClose} className="relative z-50">
-        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="mx-auto w-full max-w-md bg-white rounded-lg shadow-xl">
-            <div className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Student</h3>
-              <p className="text-sm text-gray-600">
-                Are you sure you want to delete{' '}
-                <span className="font-medium text-gray-900">{student.name}</span>? This action
-                cannot be undone.
-              </p>
-            </div>
-            <div className="flex justify-end gap-3 px-6 py-4 bg-gray-50 rounded-b-lg">
-              <button onClick={onClose} className="btn-secondary">
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirm}
-                className="btn-danger"
-                title="Permanently delete this student"
-              >
-                Delete
-              </button>
-            </div>
-          </Dialog.Panel>
-        </div>
-      </Dialog>
-    );
-  };
+  // const DeleteConfirmModal = ({ student, onClose }) => {
+  //   if (!student) return null;
+  //   const handleConfirm = async () => {
+  //     try {
+  //       await onDeleteStudent?.(student); // parent handles API + refetch
+  //       onClose();
+  //     } catch (e) {
+  //       console.error(e);
+  //     }
+  //   };
+  //   return (
+  //     <Dialog open={!!student} onClose={onClose} className="relative z-50">
+  //       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+  //       <div className="fixed inset-0 flex items-center justify-center p-4">
+  //         <Dialog.Panel className="mx-auto w-full max-w-md bg-white rounded-lg shadow-xl">
+  //           <div className="p-6">
+  //             <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Student</h3>
+  //             <p className="text-sm text-gray-600">
+  //               Are you sure you want to delete{' '}
+  //               <span className="font-medium text-gray-900">{student.name}</span>? This action
+  //               cannot be undone.
+  //             </p>
+  //           </div>
+  //           <div className="flex justify-end gap-3 px-6 py-4 bg-gray-50 rounded-b-lg">
+  //             <button onClick={onClose} className="btn-secondary">
+  //               Cancel
+  //             </button>
+  //             <button
+  //               onClick={handleConfirm}
+  //               className="btn-danger"
+  //               title="Permanently delete this student"
+  //             >
+  //               Delete
+  //             </button>
+  //           </div>
+  //         </Dialog.Panel>
+  //       </div>
+  //     </Dialog>
+  //   );
+  // };
 
   // ======= Table =======
   return (
@@ -507,7 +507,14 @@ const StudentTable = ({
       {/* Modals */}
       <ViewStudentModal student={viewStudent} onClose={() => setViewStudent(null)} />
       <CollectPaymentModal student={collectStudent} onClose={() => setCollectStudent(null)} />
-      <DeleteConfirmModal student={deleteTarget} onClose={() => setDeleteTarget(null)} />
+      {/* <DeleteConfirmModal student={deleteTarget} onClose={() => setDeleteTarget(null)} /> */}
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete(student)}
+        title="Delete Admin"
+        message={`Are you sure you want to delete admin "${adminToDelete?.fullName}"? This action cannot be undone and will remove their access to the system.`}
+      />
     </div>
   );
 };

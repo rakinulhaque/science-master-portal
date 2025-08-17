@@ -1,6 +1,7 @@
 import Student from '../models/student.js';
 import Batch from '../models/batch.js';
 import Branch from '../models/branch.js';
+import StudentPayment from '../models/studentPayment.js';
 import sequelize from '../models/db.js';
 
 // Create a student (admin or super admin)
@@ -25,6 +26,37 @@ export const createStudent = async (req, res) => {
   } catch (err) {
     await t.rollback();
     throw err;
+  }
+};
+
+// Delete a student (admin or super admin)
+export const deleteStudent = async (req, res) => {
+  const { id } = req.params;
+  const t = await sequelize.transaction();
+  try {
+    const student = await Student.findByPk(id, { transaction: t });
+    if (!student) {
+      await t.rollback();
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // Delete all payments associated with the student
+    await StudentPayment.destroy({
+      where: { studentId: id },
+      transaction: t,
+    });
+
+    // Remove student from batches
+    await student.setBatches([], { transaction: t });
+
+    // Delete the student
+    await student.destroy({ transaction: t });
+
+    await t.commit();
+    res.json({ message: 'Student deleted successfully' });
+  } catch (err) {
+    await t.rollback();
+    res.status(500).json({ message: 'Error deleting student', error: err.message });
   }
 };
 

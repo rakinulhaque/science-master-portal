@@ -1,9 +1,10 @@
-const router = express.Router();
-import { createStudent, updateStudent } from '../controllers/studentInfoController.js';
-import { authenticate, authorizeSuperAdmin, authorizeAdmin } from '../middleware/auth.js';
 import express from 'express';
+import { createStudent, updateStudent, deleteStudent } from '../controllers/studentInfoController.js';
+import { authenticate, authorizeSuperAdmin, authorizeAdmin } from '../middleware/auth.js';
 import { addStudentPayment } from '../controllers/studentController.js';
 import { getStudentWithDue, getAllStudentsWithDue } from '../controllers/studentDueController.js';
+
+const router = express.Router();
 
 
 
@@ -25,5 +26,8 @@ router.post('/', authenticate, authorizeAdmin, createStudent);
 
 // Edit student info (admin or super admin, except payment info)
 router.put('/:id', authenticate, authorizeAdmin, updateStudent);
+
+// Delete a student (admin or super admin)
+router.delete('/:id', authenticate, authorizeAdmin, deleteStudent);
 
 export default router;
