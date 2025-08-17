@@ -26,28 +26,19 @@ const BatchManagement = () => {
   const [batchToDelete, setBatchToDelete] = useState(null);
 
   const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [branchFilter, setBranchFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
 
   const { data: branches = [] } = useGetBranchesQuery();
   const { data: categories = [] } = useGetCategoriesQuery();
 
-  const queryParams = useMemo(
-    () => ({
-      ...(debouncedSearch ? { search: debouncedSearch } : {}),
-      ...(branchFilter ? { branchId: branchFilter } : {}),
-      ...(categoryFilter ? { categoryId: categoryFilter } : {}),
-    }),
-    [debouncedSearch, branchFilter, categoryFilter]
-  );
-
+  // Fetch all batches without search parameters for client-side filtering
   const {
-    data: batches = [],
+    data: allBatches = [],
     isLoading,
     isFetching,
     refetch,
-  } = useGetBatchesQuery(queryParams);
+  } = useGetBatchesQuery();
 
   const [createBatch] = useCreateBatchMutation();
   const [updateBatch] = useUpdateBatchMutation();
@@ -56,16 +47,42 @@ const BatchManagement = () => {
   const categoryOptions = useMemo(() => {
     const map = new Map();
     categories.forEach((c) => map.set(c.id, c.name));
-    batches.forEach((b) => {
+    allBatches.forEach((b) => {
       if (b.Category) map.set(b.Category.id, b.Category.name);
     });
     return Array.from(map, ([id, name]) => ({ id, name }));
-  }, [categories, batches]);
+  }, [categories, allBatches]);
 
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search.trim()), 500);
-    return () => clearTimeout(t);
-  }, [search]);
+  // Client-side filtering logic
+  const filteredBatches = useMemo(() => {
+    let filtered = [...allBatches];
+
+    // Apply search filter
+    if (search.trim()) {
+      const searchLower = search.toLowerCase();
+      filtered = filtered.filter(batch => 
+        batch.name.toLowerCase().includes(searchLower) ||
+        batch.batchCode.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Apply branch filter
+    if (branchFilter) {
+      filtered = filtered.filter(batch => 
+        Array.isArray(batch.Branches) && 
+        batch.Branches.some(branch => branch.id === branchFilter)
+      );
+    }
+
+    // Apply category filter
+    if (categoryFilter) {
+      filtered = filtered.filter(batch => 
+        batch.Category && batch.Category.id === categoryFilter
+      );
+    }
+
+    return filtered;
+  }, [allBatches, search, branchFilter, categoryFilter]);
 
   const openCreate = () => {
     setEditingBatch(null);
@@ -135,7 +152,7 @@ const BatchManagement = () => {
     );
   }
 
-  const hasData = !isFetching && batches.length > 0;
+  const hasData = !isFetching && filteredBatches.length > 0;
 
   return (
     <div className="p-6 space-y-6">
@@ -208,7 +225,7 @@ const BatchManagement = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {(isFetching ? [] : batches).map((batch) => (
+              {(isFetching ? [] : filteredBatches).map((batch) => (
                 <tr key={batch.id}>
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{batch.name}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{batch.batchCode}</td>
@@ -235,10 +252,10 @@ const BatchManagement = () => {
                   </td>
                 </tr>
               ))}
-              {!isFetching && batches.length === 0 && (
+              {!isFetching && filteredBatches.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                    No batches found. Create one to get started.
+                    No batches found matching your criteria.
                   </td>
                 </tr>
               )}
@@ -251,11 +268,16 @@ const BatchManagement = () => {
             <div className="w-14 h-14 rounded-full bg-purple-100 mx-auto mb-4 flex items-center justify-center">
               <BuildingOfficeIcon className="h-7 w-7 text-purple-600" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-1">No batches yet</h3>
-            <p className="text-gray-500 mb-5">Get started by creating your first batch.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">No batches found</h3>
+            <p className="text-gray-500 mb-5">
+              {allBatches.length > 0 
+                ? 'Try adjusting your search or filter criteria.'
+                : 'Get started by creating your first batch.'
+              }
+            </p>
             <button onClick={openCreate} className="btn-primary inline-flex items-center">
               <PlusIcon className="h-5 w-5 mr-2" />
-              Add First Batch
+              {allBatches.length > 0 ? 'Create New Batch' : 'Add First Batch'}
             </button>
           </div>
         </div>
