@@ -3,7 +3,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Navigate } from 'react-router-dom';
 import { useLoginMutation } from '../store/api/authApi';
 import { setCredentials } from '../store/slices/authSlice';
-import { PhoneIcon, LockClosedIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import {
+  PhoneIcon,
+  LockClosedIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  QuestionMarkCircleIcon,
+} from '@heroicons/react/24/outline';
 import SunriseLogo from '../components/common/SunriseLogo';
 
 const LoginPage = () => {
@@ -39,52 +45,55 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
-        <div className="card p-8">
-          {/* Logo and Header */}
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-4">
-              <SunriseLogo size="xl" />
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-2xl shadow-lg ring-1 ring-black/5 p-8">
+          {/* Wordmark / Logo */}
+          <div className="mb-2">
+            <div className="flex items-center space-x-2">
+              <SunriseLogo size="medium" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Student Management Portal</h2>
-            <p className="text-gray-600">Log in to continue</p>
           </div>
 
-          {/* Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Phone Number Field */}
+          {/* Title + subtitle */}
+          <h2 className="text-xl font-semibold text-gray-900">Student Management Portal</h2>
+          <p className="text-sm text-gray-600 mt-1">Log in to continue</p>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            {/* Phone */}
             <div>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <PhoneIcon className="h-5 w-5 text-gray-400" />
-                </div>
+                </span>
                 <input
                   type="tel"
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value)}
-                  className="input-field pl-10"
-                  placeholder="01234567890"
+                  placeholder="Enter your phone number"
+                  className="w-full rounded-lg border-0 bg-gray-100 text-gray-900 placeholder-gray-500 pl-10 pr-3 py-3 focus:ring-2 focus:ring-primary-500"
                 />
               </div>
             </div>
 
-            {/* Password Field */}
+            {/* Password */}
             <div>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <LockClosedIcon className="h-5 w-5 text-gray-400" />
-                </div>
+                </span>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="input-field pl-10 pr-10"
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
+                  className="w-full rounded-lg border-0 bg-gray-100 text-gray-900 placeholder-gray-500 pl-10 pr-10 py-3 focus:ring-2 focus:ring-primary-500"
                 />
                 <button
                   type="button"
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? (
                     <EyeSlashIcon className="h-5 w-5 text-gray-400" />
@@ -95,32 +104,30 @@ const LoginPage = () => {
               </div>
             </div>
 
-            {/* Error Message */}
+            {/* Error */}
             {error && (
-              <div className="flex items-center text-red-600 text-sm">
+              <div className="text-sm text-red-600 flex items-center">
                 <LockClosedIcon className="h-4 w-4 mr-2" />
                 {error}
               </div>
             )}
 
-            {/* Forgot Password Link */}
-            <div className="flex items-center">
+            {/* Footer row: forgot + CTA */}
+            <div className="flex items-center justify-between">
               <button
                 type="button"
-                className="text-blue-600 hover:text-blue-500 text-sm font-medium"
+                className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-500"
               >
-                🔵 Forgot password?
+                <QuestionMarkCircleIcon className="h-5 w-5 mr-1" />
+                Forgot password?
               </button>
-            </div>
 
-            {/* Login Button */}
-            <div className="flex justify-end">
               <button
                 type="submit"
                 disabled={isLoading}
-                className="btn-primary px-8 py-2 flex items-center"
+                className="inline-flex items-center px-6 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-70"
               >
-                {isLoading ? 'Logging in...' : 'Log in'}
+                {isLoading ? 'Logging in…' : 'Log in'}
                 <span className="ml-2">→</span>
               </button>
             </div>

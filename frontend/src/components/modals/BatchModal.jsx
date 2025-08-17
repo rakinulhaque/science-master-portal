@@ -101,7 +101,7 @@ const BatchModal = ({ isOpen, onClose, onSave, batch, branches }) => {
                 value={batchCode}
                 onChange={(e) => setBatchCode(e.target.value)}
                 className="w-full pl-10 pr-3 py-2 border rounded-md"
-                placeholder="UniA25B1"
+                placeholder="UniA25B1, EngA25B1"
                 required
               />
             </div>
@@ -113,7 +113,7 @@ const BatchModal = ({ isOpen, onClose, onSave, batch, branches }) => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full px-3 py-2 border rounded-md"
-              placeholder="Physics Masters Evening"
+              placeholder="Engineering Admission 2025 Batch 1"
               required
             />
           </div>

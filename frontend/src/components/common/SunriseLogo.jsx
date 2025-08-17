@@ -2,28 +2,32 @@ import React from 'react';
 import clsx from 'clsx';
 import SunriseLogoImg from '../../assets/images/sunrise-logo.png';
 
+/**
+ * SunriseLogo (PNG)
+ * - Keeps original aspect ratio (h-* w-auto)
+ * - No inline baseline gap (display: block)
+ */
 const SunriseLogo = ({
   size = 'medium',
   className = '',
-  showText = false,
-  text = 'Sunrise',
-  textClassName = 'ml-2 text-xl font-semibold text-gray-900',
+  alt = 'Sunrise Logo',
 }) => {
+  // Use height only; keep width auto to preserve aspect ratio
   const sizeClasses = {
-    small: '4rem',
-    medium: '6rem',
-    large: '8rem',
-    xl: '10rem',
+    small: 'h-6 w-auto',
+    medium: 'h-8 w-auto',
+    large: 'h-10 w-auto',
+    xl: 'h-12 w-auto',
   };
-  
+
   return (
-<div className={clsx('inline-flex items-center', className)} style={{ width: sizeClasses[size], height: sizeClasses[size] }}>
+    <div className={clsx('inline-flex items-center', className)}>
       <img
         src={SunriseLogoImg}
-        alt="Sunrise Logo"
-        className={clsx('object-contain')}
+        alt={alt}
+        className={clsx('block object-contain select-none', sizeClasses[size])}
+        draggable={false}
       />
-      {showText && <span className={textClassName}>{text}</span>}
     </div>
   );
 };

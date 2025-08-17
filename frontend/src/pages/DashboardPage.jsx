@@ -1,13 +1,17 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
 import { logout } from '../store/slices/authSlice';
+
 import BranchManagement from '../components/admin/BranchManagement';
 import BatchManagement from '../components/admin/BatchManagement';
 import AdminManagement from '../components/admin/AdminManagement';
 import StudentManagement from '../components/admin/StudentManagement';
-import SunriseLogo from '../components/common/SunriseLogo';
 import CategoryManagement from '../components/admin/CategoryManagement';
+import SunriseLogo from '../components/common/SunriseLogo';
+
+import { useGetBranchesQuery } from '../store/api/branchesApi';
+
 import {
   ChevronDownIcon,
   BuildingOfficeIcon,
@@ -46,16 +50,39 @@ const DashboardPage = () => {
   const isSuperAdmin = user?.role === 'super_admin';
   const isAdmin = user?.role === 'admin';
 
+  // Load branches only when needed (admin view)
+  const { data: branches = [] } = useGetBranchesQuery(undefined, {
+    skip: !isAdmin,
+  });
+
+  // Resolve branch name for the logged-in admin
+  const adminBranchName = useMemo(() => {
+    if (!isAdmin) return '';
+    if (!user?.branchId) return 'Unassigned';
+    const b = branches.find((br) => br.id === user.branchId);
+    return b ? b.name : 'Unassigned';
+  }, [isAdmin, user?.branchId, branches]);
+
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: HomeIcon, access: ['super_admin'] },
-    { id: 'students', label: 'Student Management', icon: UsersIcon, access: ['super_admin', 'admin'] },
-    { id: 'branches', label: 'Branch Management', icon: BuildingOfficeIcon, access: ['super_admin'] },
+    {
+      id: 'students',
+      label: 'Student Management',
+      icon: UsersIcon,
+      access: ['super_admin', 'admin'],
+    },
+    {
+      id: 'branches',
+      label: 'Branch Management',
+      icon: BuildingOfficeIcon,
+      access: ['super_admin'],
+    },
     { id: 'batches', label: 'Batch Management', icon: AcademicCapIcon, access: ['super_admin'] },
     { id: 'admins', label: 'Admin Management', icon: UsersIcon, access: ['super_admin'] },
   ].filter((item) => item.access.includes(user?.role));
 
   const renderDashboardContent = () => {
-    // For admin role, show StudentManagement component instead of duplicate code
+    // For admin role, show StudentManagement component
     if (isAdmin) {
       return <StudentManagement />;
     }
@@ -136,12 +163,9 @@ const DashboardPage = () => {
                 isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
               }`}
             >
-              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
                 <div className="flex items-center">
-                  <div className="w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">☀</span>
-                  </div>
-                  {/* <span className="ml-2 text-lg font-bold text-primary-600">SUNRISE</span> */}
+                  <SunriseLogo size="large" className="-mb-0.5" />
                 </div>
                 <button
                   onClick={() => setIsSidebarOpen(false)}
@@ -225,12 +249,11 @@ const DashboardPage = () => {
                   {!isSuperAdmin && (
                     <>
                       <div className="flex items-center">
-                        <div className="w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-bold">☀</span>
-                        </div>
-                        {/* <h1 className="ml-2 text-xl font-bold text-primary-600">SUNRISE</h1> */}
+                        <SunriseLogo size="medium" className="-mb-0.5" />
                       </div>
-                      <div className="ml-8 text-sm text-gray-600">Motijheel Branch</div>
+                      <div className="ml-8 text-sm text-gray-600">
+                        {adminBranchName}
+                      </div>
                     </>
                   )}
 
@@ -262,7 +285,7 @@ const DashboardPage = () => {
                       <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center mr-2">
                         <span className="text-primary-600 font-medium">👤</span>
                       </div>
-                      <span>Admin.Motijheel</span>
+                      <span>{user?.fullName || 'Admin'}</span>
                       <ChevronDownIcon className="h-4 w-4 ml-1" />
                     </div>
                     <button
