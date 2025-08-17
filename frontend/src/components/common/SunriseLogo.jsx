@@ -10,18 +10,18 @@ const SunriseLogo = ({
   textClassName = 'ml-2 text-xl font-semibold text-gray-900',
 }) => {
   const sizeClasses = {
-    small: 'w-6 h-6',
-    medium: 'w-8 h-8',
-    large: 'w-10 h-10',
-    xl: 'width: 88px; height: 88px;',
+    small: '4rem',
+    medium: '6rem',
+    large: '8rem',
+    xl: '10rem',
   };
   
   return (
-<div className={clsx('inline-flex items-center', className)} style={sizeClasses[size]}>
+<div className={clsx('inline-flex items-center', className)} style={{ width: sizeClasses[size], height: sizeClasses[size] }}>
       <img
         src={SunriseLogoImg}
         alt="Sunrise Logo"
-        className={clsx('object-contain', sizeClasses[size])}
+        className={clsx('object-contain')}
       />
       {showText && <span className={textClassName}>{text}</span>}
     </div>
