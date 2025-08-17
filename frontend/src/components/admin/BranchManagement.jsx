@@ -19,24 +19,62 @@ import {
   EnvelopeIcon,
 } from '@heroicons/react/24/outline';
 
+function normalizeApiError(err) {
+  let status;
+  let data;
+  let fallback = '';
+  if (err && typeof err === 'object' && 'status' in err) {
+    status = err.status;
+    data = err.data;
+  } else if (err && typeof err === 'object' && 'error' in err) {
+    fallback = String(err.error || '');
+    data = err.data ?? undefined;
+  } else if (typeof err === 'string') {
+    fallback = err;
+  } else {
+    try {
+      fallback = JSON.stringify(err);
+    } catch {
+      fallback = 'Unknown error';
+    }
+  }
+  let fieldErrors = null;
+  let message =
+    (Array.isArray(data?.message) ? data.message.join(', ') : data?.message) ||
+    (typeof data === 'string' ? data : '') ||
+    fallback ||
+    (status ? `Request failed with status ${status}` : 'Something went wrong');
+
+  if (message) {
+    const m = message.toLowerCase();
+    const mapped = {};
+    if (m.includes('branch name')) mapped.name = message;
+    if (m.includes('admin user not found')) mapped.branchAdminId = message;
+    if (Object.keys(mapped).length) fieldErrors = mapped;
+    console.error('API Error:', { status, message, fieldErrors });
+  }
+
+  return { fieldErrors, message, status };
+}
+
 const BranchManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [branchToDelete, setBranchToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [formErrors, setFormErrors] = useState(null);
+  const [formGeneralError, setFormGeneralError] = useState(null);
+  const [deleteError, setDeleteError] = useState(null);
 
-  const { data: branches = [], isLoading, refetch } = useGetBranchesQuery();
+  const { data: branches = [], isLoading, isError, error, refetch } = useGetBranchesQuery();
   const { data: users = [] } = useGetUsersQuery();
   const [createBranch] = useCreateBranchMutation();
   const [updateBranch] = useUpdateBranchMutation();
   const [deleteBranch] = useDeleteBranchMutation();
 
   const getAdminFromBranch = (branch) => {
-    // Prefer populated object if present
     if (branch?.branchAdmin) return branch.branchAdmin;
-
-    // Fallback: resolve by branchAdminId from users list (if your API sends only IDs sometimes)
     const adminId = branch?.branchAdminId;
     if (!adminId) return null;
     return users.find((u) => u.id === adminId) || null;
@@ -44,7 +82,6 @@ const BranchManagement = () => {
 
   const filteredBranches = useMemo(() => {
     let list = [...branches];
-
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
       list = list.filter((b) => {
@@ -53,37 +90,36 @@ const BranchManagement = () => {
         const admin = getAdminFromBranch(b);
         const adminName = (admin?.fullName || admin?.username || '').toLowerCase();
         const adminEmail = (admin?.email || '').toLowerCase();
-
-        return (
-          name.includes(q) ||
-          location.includes(q) ||
-          adminName.includes(q) ||
-          adminEmail.includes(q)
-        );
+        return name.includes(q) || location.includes(q) || adminName.includes(q) || adminEmail.includes(q);
       });
     }
-
-    // Sort by ID descending
     return list.sort((a, b) => b.id - a.id);
   }, [branches, users, searchTerm]);
 
   const handleCreateBranch = () => {
     setSelectedBranch(null);
+    setFormErrors(null);
+    setFormGeneralError(null);
     setIsModalOpen(true);
   };
 
   const handleEditBranch = (branch) => {
     setSelectedBranch(branch);
+    setFormErrors(null);
+    setFormGeneralError(null);
     setIsModalOpen(true);
   };
 
   const handleDeleteBranch = (branch) => {
     setBranchToDelete(branch);
+    setDeleteError(null);
     setIsDeleteModalOpen(true);
   };
 
   const handleModalSave = async (branchData) => {
     try {
+      setFormErrors(null);
+      setFormGeneralError(null);
       if (selectedBranch) {
         await updateBranch({ id: selectedBranch.id, ...branchData }).unwrap();
       } else {
@@ -91,19 +127,23 @@ const BranchManagement = () => {
       }
       setIsModalOpen(false);
       refetch();
-    } catch (error) {
-      console.error('Error saving branch:', error);
+    } catch (e) {
+      const { fieldErrors, message } = normalizeApiError(e);
+      if (fieldErrors) setFormErrors(fieldErrors);
+      if (message) setFormGeneralError(message);
     }
   };
 
   const handleConfirmDelete = async () => {
     try {
+      setDeleteError(null);
       await deleteBranch(branchToDelete.id).unwrap();
       setIsDeleteModalOpen(false);
       setBranchToDelete(null);
       refetch();
-    } catch (error) {
-      console.error('Error deleting branch:', error);
+    } catch (e) {
+      const { message } = normalizeApiError(e);
+      setDeleteError(message);
     }
   };
 
@@ -119,7 +159,13 @@ const BranchManagement = () => {
 
   return (
     <div className="p-6">
-      {/* Header */}
+      {isError && (
+        <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-red-700">
+          Failed to load branches. {normalizeApiError(error).message}
+          <button onClick={refetch} className="ml-3 underline">Retry</button>
+        </div>
+      )}
+
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
@@ -127,9 +173,7 @@ const BranchManagement = () => {
               <BuildingOfficeIcon className="h-8 w-8 mr-3 text-primary-600" />
               Branch Management
             </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Manage all branches and their administrators
-            </p>
+            <p className="text-sm text-gray-600 mt-1">Manage all branches and their administrators</p>
           </div>
           <button onClick={handleCreateBranch} className="btn-primary flex items-center">
             <PlusIcon className="h-5 w-5 mr-2" />
@@ -138,7 +182,6 @@ const BranchManagement = () => {
         </div>
       </div>
 
-      {/* Search Bar (same style as AdminManagement) */}
       <div className="mb-6">
         <div className="relative max-w-md">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -154,36 +197,22 @@ const BranchManagement = () => {
         </div>
         {searchTerm && (
           <p className="text-sm text-gray-600 mt-2">
-            Found {filteredBranches.length} branch{filteredBranches.length !== 1 ? 'es' : ''}{' '}
-            matching "{searchTerm}"
+            Found {filteredBranches.length} branch{filteredBranches.length !== 1 ? 'es' : ''} matching "{searchTerm}"
           </p>
         )}
       </div>
 
-      {/* List/Table */}
       <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
         {filteredBranches.length > 0 ? (
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Branch
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Location
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Admin
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Created
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-right">
-                  Actions
-                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -191,7 +220,6 @@ const BranchManagement = () => {
                 const admin = getAdminFromBranch(branch);
                 return (
                   <tr key={branch.id} className="hover:bg-gray-50">
-                    {/* Branch */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
@@ -203,16 +231,12 @@ const BranchManagement = () => {
                         </div>
                       </div>
                     </td>
-
-                    {/* Location */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center text-sm text-gray-700">
                         <MapPinIcon className="h-4 w-4 mr-2 text-gray-400" />
                         {branch.location || '-'}
                       </div>
                     </td>
-
-                    {/* Admin */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       {admin ? (
                         <div className="text-sm text-gray-900">
@@ -231,8 +255,6 @@ const BranchManagement = () => {
                         <span className="text-sm text-gray-500">Not Assigned</span>
                       )}
                     </td>
-
-                    {/* Status */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -242,13 +264,9 @@ const BranchManagement = () => {
                         {admin ? 'Active' : 'Needs Admin'}
                       </span>
                     </td>
-
-                    {/* Created */}
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {branch.createdAt ? new Date(branch.createdAt).toLocaleDateString() : '-'}
                     </td>
-
-                    {/* Actions */}
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
                         <button
@@ -274,7 +292,6 @@ const BranchManagement = () => {
           </table>
         ) : null}
 
-        {/* Empty State */}
         {filteredBranches.length === 0 && (
           <div className="text-center py-12">
             <BuildingOfficeIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -287,10 +304,7 @@ const BranchManagement = () => {
                 : 'Get started by creating your first branch.'}
             </p>
             {!searchTerm && (
-              <button
-                onClick={handleCreateBranch}
-                className="btn-primary flex items-center mx-auto"
-              >
+              <button onClick={handleCreateBranch} className="btn-primary flex items-center mx-auto">
                 <PlusIcon className="h-5 w-5 mr-2" />
                 Add First Branch
               </button>
@@ -299,22 +313,24 @@ const BranchManagement = () => {
         )}
       </div>
 
-      {/* Branch Modal */}
       <BranchModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleModalSave}
         branch={selectedBranch}
         users={users}
+        fieldErrors={formErrors}
+        generalError={formGeneralError}
       />
 
-      {/* Delete Confirmation Modal */}
+
       <DeleteConfirmModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleConfirmDelete}
         title="Delete Branch"
         message={`Are you sure you want to delete "${branchToDelete?.name}"? This action cannot be undone.`}
+        errorText={deleteError}
       />
     </div>
   );
