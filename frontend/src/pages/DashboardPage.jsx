@@ -7,11 +7,13 @@ import BatchManagement from '../components/admin/BatchManagement';
 import AdminManagement from '../components/admin/AdminManagement';
 import StudentManagement from '../components/admin/StudentManagement';
 import SunriseLogo from '../components/common/SunriseLogo';
+import CategoryManagement from '../components/admin/CategoryManagement';
 import {
   ChevronDownIcon,
   BuildingOfficeIcon,
   UsersIcon,
   AcademicCapIcon,
+  TagIcon,
   HomeIcon,
   Bars3Icon,
   XMarkIcon,
@@ -46,18 +48,8 @@ const DashboardPage = () => {
 
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: HomeIcon, access: ['super_admin'] },
-    {
-      id: 'students',
-      label: 'Student Management',
-      icon: UsersIcon,
-      access: ['super_admin', 'admin'],
-    },
-    {
-      id: 'branches',
-      label: 'Branch Management',
-      icon: BuildingOfficeIcon,
-      access: ['super_admin'],
-    },
+    { id: 'students', label: 'Student Management', icon: UsersIcon, access: ['super_admin', 'admin'] },
+    { id: 'branches', label: 'Branch Management', icon: BuildingOfficeIcon, access: ['super_admin'] },
     { id: 'batches', label: 'Batch Management', icon: AcademicCapIcon, access: ['super_admin'] },
     { id: 'admins', label: 'Admin Management', icon: UsersIcon, access: ['super_admin'] },
   ].filter((item) => item.access.includes(user?.role));
@@ -113,6 +105,8 @@ const DashboardPage = () => {
         return <StudentManagement />;
       case 'branches':
         return <BranchManagement />;
+      case 'categories':
+        return <CategoryManagement />;
       case 'batches':
         return <BatchManagement />;
       case 'admins':
@@ -247,12 +241,14 @@ const DashboardPage = () => {
                           ? 'Dashboard'
                           : activeSection === 'branches'
                           ? 'Branch Management'
+                          : activeSection === 'categories'
+                          ? 'Category Management'
                           : activeSection === 'batches'
                           ? 'Batch Management'
                           : activeSection === 'admins'
                           ? 'Admin Management'
                           : activeSection === 'students'
-                          ? 'Stundent Management'
+                          ? 'Student Management'
                           : 'Dashboard'}
                       </h1>
                     </div>
