@@ -34,6 +34,17 @@ const AdminManagement = () => {
   const [updateAdmin] = useUpdateAdminMutation();
   const [deleteAdmin] = useDeleteAdminMutation();
 
+  // Helper function to get branch name - defined before use
+  const getBranchName = (branchId) => {
+    // Handle null, undefined, or empty branchId
+    if (!branchId) {
+      return 'Unassigned';
+    }
+
+    const branch = branches.find((branch) => branch.id === branchId);
+    return branch ? branch.name : 'Unassigned';
+  };
+
   // Filter to show only admins (not super_admin) and apply search
   const admins = useMemo(() => {
     const adminUsers = users.filter((user) => user.role === 'admin');
@@ -42,16 +53,19 @@ const AdminManagement = () => {
 
     return adminUsers.filter((admin) => {
       const searchLower = searchTerm.toLowerCase();
+      let branchName = '';
+      
       if (admin.branchId !== null && admin.branchId !== '') {
         branchName = getBranchName(admin.branchId).toLowerCase();
       }
+      
       return (
         admin.fullName?.toLowerCase().includes(searchLower) ||
         admin.mobile?.toLowerCase().includes(searchLower) ||
         (admin.branchId && branchName.includes(searchLower))
       );
     });
-  }, [users, searchTerm, branches]);
+  }, [users, searchTerm, branches, getBranchName]);
 
   const handleCreateAdmin = () => {
     setSelectedAdmin(null);
@@ -107,16 +121,6 @@ const AdminManagement = () => {
     } catch (error) {
       console.error('Error deleting admin:', error);
     }
-  };
-
-  const getBranchName = (branchId) => {
-    // Handle null, undefined, or empty branchId
-    if (!branchId) {
-      return 'Unassigned';
-    }
-
-    const branch = branches.find((branch) => branch.id === branchId);
-    return branch ? branch.name : 'Unassigned';
   };
 
   if (isLoading) {
