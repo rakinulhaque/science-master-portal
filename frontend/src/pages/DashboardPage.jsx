@@ -2,17 +2,11 @@ import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
 import { logout } from '../store/slices/authSlice';
-import { useGetStudentsQuery } from '../store/api/studentsApi';
-import StudentTable from '../components/dashboard/StudentTable';
-import AddStudentModal from '../components/modals/AddStudentModal';
 import BranchManagement from '../components/admin/BranchManagement';
 import BatchManagement from '../components/admin/BatchManagement';
 import AdminManagement from '../components/admin/AdminManagement';
 import StudentManagement from '../components/admin/StudentManagement';
 import {
-  MagnifyingGlassIcon,
-  FunnelIcon,
-  PlusIcon,
   ChevronDownIcon,
   BuildingOfficeIcon,
   UsersIcon,
@@ -23,8 +17,6 @@ import {
 } from '@heroicons/react/24/outline';
 
 const DashboardPage = () => {
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const dispatch = useDispatch();
@@ -32,7 +24,6 @@ const DashboardPage = () => {
   const { section } = useParams();
 
   const user = useSelector((state) => state.auth.user);
-  const { data: students = [], isLoading, refetch } = useGetStudentsQuery();
 
   // Determine active section from URL params
   const activeSection = section || 'dashboard';
@@ -49,13 +40,6 @@ const DashboardPage = () => {
     }
   };
 
-  const filteredStudents = students.filter(
-    (student) =>
-      student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.phoneNumber?.includes(searchTerm) ||
-      student.institution?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
     const isSuperAdmin = user?.role === 'super_admin';
   const isAdmin = user?.role === 'admin';
   
@@ -67,64 +51,29 @@ const DashboardPage = () => {
     { id: 'admins', label: 'Admin Management', icon: UsersIcon, access: ['super_admin'] },
   ].filter(item => item.access.includes(user?.role));
 
-  const renderDashboardContent = () => (
-    <div className="px-6 py-6">
-      {/* Page Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-900">
-              {isSuperAdmin ? 'Super Admin Dashboard' : 'Student Management Portal'}
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              {isSuperAdmin ? 'Manage your organization' : `${filteredStudents.length} records found`}
-            </p>
-          </div>
-          {!isSuperAdmin && (
-            <button onClick={() => setIsAddModalOpen(true)} className="btn-primary flex items-center">
-              <PlusIcon className="h-5 w-5 mr-2" />
-              Add New Entry
-            </button>
-          )}
-        </div>
-      </div>
-
-      {!isSuperAdmin && (
-        <>
-          {/* Search and Filters */}
-          <div className="mb-6 flex items-center space-x-4">
-            <div className="flex-1 max-w-md">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="input-field pl-10"
-                  placeholder="Search for a student"
-                />
-              </div>
+  const renderDashboardContent = () => {
+    // For admin role, show StudentManagement component instead of duplicate code
+    if (isAdmin) {
+      return <StudentManagement />;
+    }
+    
+    // For super admin, show the dashboard overview
+    return (
+      <div className="px-6 py-6">
+        {/* Page Header */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-900">
+                Super Admin Dashboard
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Manage your organization
+              </p>
             </div>
-            <button className="btn-secondary flex items-center">
-              <span className="mr-2">📊</span>
-              Columns
-            </button>
-            <button className="btn-secondary flex items-center">
-              <FunnelIcon className="h-5 w-5 mr-2" />
-              Filter
-            </button>
           </div>
+        </div>
 
-          {/* Student Table */}
-          <div className="card">
-            <StudentTable students={filteredStudents} isLoading={isLoading} onRefresh={refetch} />
-          </div>
-        </>
-      )}
-
-      {isSuperAdmin && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sidebarItems.slice(1).map((item) => {
             const Icon = item.icon;
@@ -147,9 +96,9 @@ const DashboardPage = () => {
             );
           })}
         </div>
-      )}
-    </div>
-  );
+      </div>
+    );
+  };
 
   const renderContent = () => {
     switch (activeSection) {
@@ -309,17 +258,6 @@ const DashboardPage = () => {
           <main className="flex-1">{renderContent()}</main>
         </div>
       </div>
-
-      {/* Add Student Modal */}
-      <AddStudentModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSuccess={() => {
-          setIsAddModalOpen(false);
-          refetch();
-        }}
-        user={user}
-      />
     </div>
   );
 };

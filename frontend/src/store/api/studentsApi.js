@@ -9,7 +9,17 @@ export const studentsApi = createApi({
   tagTypes: ['Student'],
   endpoints: (builder) => ({
     getStudents: builder.query({
-      query: () => '/students',
+      query: ({ page = 1, limit = 15, search = '', institution = '', batchId = '', branchId = '' } = {}) => {
+        const params = new URLSearchParams();
+        params.append('page', page.toString());
+        params.append('limit', limit.toString());
+        if (search) params.append('search', search);
+        if (institution) params.append('institution', institution);
+        if (batchId) params.append('batchId', batchId);
+        if (branchId) params.append('branchId', branchId);
+        
+        return `/students?${params.toString()}`;
+      },
       providesTags: ['Student'],
     }),
     createStudent: builder.mutation({

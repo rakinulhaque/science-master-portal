@@ -1,7 +1,7 @@
-import { PencilIcon, DocumentIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, DocumentIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { generateStudentPDF } from '../../utils/pdfGenerator';
 
-const StudentTable = ({ students, isLoading }) => {
+const StudentTable = ({ students, isLoading, pagination = {}, currentPage, onPageChange }) => {
   if (isLoading) {
     return (
       <div className="p-8 text-center">
@@ -55,9 +55,116 @@ const StudentTable = ({ students, isLoading }) => {
     }
   };
 
+  const renderPaginationControls = () => {
+    if (!pagination.totalPages || pagination.totalPages <= 1) return null;
+
+    const { currentPage: page, totalPages, hasNextPage, hasPrevPage } = pagination;
+    
+    // Generate page numbers to show
+    const getPageNumbers = () => {
+      const pages = [];
+      const maxVisible = 5;
+      const half = Math.floor(maxVisible / 2);
+      
+      let start = Math.max(1, page - half);
+      let end = Math.min(totalPages, start + maxVisible - 1);
+      
+      if (end - start + 1 < maxVisible) {
+        start = Math.max(1, end - maxVisible + 1);
+      }
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+      
+      return pages;
+    };
+
+    return (
+      <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+        <div className="flex flex-1 justify-between sm:hidden">
+          <button
+            onClick={() => onPageChange(page - 1)}
+            disabled={!hasPrevPage}
+            className={`relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${
+              hasPrevPage 
+                ? 'text-gray-700 hover:bg-gray-50' 
+                : 'text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => onPageChange(page + 1)}
+            disabled={!hasNextPage}
+            className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${
+              hasNextPage 
+                ? 'text-gray-700 hover:bg-gray-50' 
+                : 'text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            Next
+          </button>
+        </div>
+        <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm text-gray-700">
+              Showing page <span className="font-medium">{page}</span> of{' '}
+              <span className="font-medium">{totalPages}</span>
+            </p>
+          </div>
+          <div>
+            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+              <button
+                onClick={() => onPageChange(page - 1)}
+                disabled={!hasPrevPage}
+                className={`relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 ${
+                  hasPrevPage 
+                    ? 'hover:bg-gray-50 focus:z-20 focus:outline-offset-0' 
+                    : 'cursor-not-allowed'
+                }`}
+              >
+                <span className="sr-only">Previous</span>
+                <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+              </button>
+              
+              {getPageNumbers().map((pageNum) => (
+                <button
+                  key={pageNum}
+                  onClick={() => onPageChange(pageNum)}
+                  className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                    pageNum === page
+                      ? 'z-10 bg-primary-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600'
+                      : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              ))}
+              
+              <button
+                onClick={() => onPageChange(page + 1)}
+                disabled={!hasNextPage}
+                className={`relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 ${
+                  hasNextPage 
+                    ? 'hover:bg-gray-50 focus:z-20 focus:outline-offset-0' 
+                    : 'cursor-not-allowed'
+                }`}
+              >
+                <span className="sr-only">Next</span>
+                <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+              </button>
+            </nav>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
+    <div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -153,6 +260,8 @@ const StudentTable = ({ students, isLoading }) => {
         </tbody>
       </table>
     </div>
+    {renderPaginationControls()}
+  </div>
   );
 };
 
