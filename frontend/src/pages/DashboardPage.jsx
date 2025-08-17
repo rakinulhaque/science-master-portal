@@ -78,6 +78,7 @@ const DashboardPage = () => {
       access: ['super_admin'],
     },
     { id: 'batches', label: 'Batch Management', icon: AcademicCapIcon, access: ['super_admin'] },
+    { id: 'categories', label: 'Category Management', icon: TagIcon, access: ['super_admin'] },
     { id: 'admins', label: 'Admin Management', icon: UsersIcon, access: ['super_admin'] },
   ].filter((item) => item.access.includes(user?.role));
 
