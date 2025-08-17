@@ -1,23 +1,23 @@
 import { useState, useMemo } from 'react';
-import { 
+import {
   useGetUsersQuery,
   useCreateAdminMutation,
   useUpdateAdminMutation,
-  useDeleteAdminMutation 
+  useDeleteAdminMutation,
 } from '../../store/api/usersApi';
 import { useGetBranchesQuery } from '../../store/api/branchesApi';
 import AdminModal from '../modals/AdminModal';
 import DeleteConfirmModal from '../modals/DeleteConfirmModal';
-import { 
-  PlusIcon, 
-  PencilIcon, 
+import {
+  PlusIcon,
+  PencilIcon,
   TrashIcon,
   UsersIcon,
   BuildingOfficeIcon,
   EnvelopeIcon,
   PhoneIcon,
   UserCircleIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
 
 const AdminManagement = () => {
@@ -36,15 +36,15 @@ const AdminManagement = () => {
 
   // Filter to show only admins (not super_admin) and apply search
   const admins = useMemo(() => {
-    const adminUsers = users.filter(user => user.role === 'admin');
-    
+    const adminUsers = users.filter((user) => user.role === 'admin');
+
     if (!searchTerm) return adminUsers;
-    
-    return adminUsers.filter(admin => {
+
+    return adminUsers.filter((admin) => {
       const searchLower = searchTerm.toLowerCase();
-      if(admin.branchId !== null && admin.branchId !== '') {
+      if (admin.branchId !== null && admin.branchId !== '') {
         branchName = getBranchName(admin.branchId).toLowerCase();
-}     
+      }
       return (
         admin.fullName?.toLowerCase().includes(searchLower) ||
         admin.mobile?.toLowerCase().includes(searchLower) ||
@@ -82,10 +82,10 @@ const AdminManagement = () => {
       refetch();
     } catch (error) {
       console.error('Error saving admin:', error);
-      
+
       // Extract error message from backend response
       let errorMessage = 'An error occurred while saving the admin.';
-      
+
       if (error?.data?.message) {
         errorMessage = error.data.message;
       } else if (error?.data?.error) {
@@ -93,7 +93,7 @@ const AdminManagement = () => {
       } else if (error?.message) {
         errorMessage = error.message;
       }
-      
+
       setBackendError(errorMessage);
     }
   };
@@ -114,8 +114,8 @@ const AdminManagement = () => {
     if (!branchId) {
       return 'Unassigned';
     }
-    
-    const branch = branches.find(branch => branch.id === branchId);
+
+    const branch = branches.find((branch) => branch.id === branchId);
     return branch ? branch.name : 'Unassigned';
   };
 
@@ -143,10 +143,7 @@ const AdminManagement = () => {
               Manage admin users and their branch assignments
             </p>
           </div>
-          <button
-            onClick={handleCreateAdmin}
-            className="btn-primary flex items-center"
-          >
+          <button onClick={handleCreateAdmin} className="btn-primary flex items-center">
             <PlusIcon className="h-5 w-5 mr-2" />
             Add New Admin
           </button>
@@ -213,19 +210,19 @@ const AdminManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{admin.email}</div>
-                    {admin.mobile && (
-                      <div className="text-sm text-gray-500">{admin.mobile}</div>
-                    )}
+                    {admin.mobile && <div className="text-sm text-gray-500">{admin.mobile}</div>}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{getBranchName(admin.branchId)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      admin.branchId && admin.branchId !== '' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        admin.branchId && admin.branchId !== ''
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}
+                    >
                       {admin.branchId && admin.branchId !== '' ? 'Assigned' : 'Unassigned'}
                     </span>
                     <div className="text-xs text-gray-500 mt-1">
@@ -264,17 +261,12 @@ const AdminManagement = () => {
               {searchTerm ? 'No admins found' : 'No admins yet'}
             </h3>
             <p className="text-gray-500 mb-4">
-              {searchTerm 
+              {searchTerm
                 ? `No admins match your search "${searchTerm}". Try a different search term.`
-                : 'Get started by creating your first admin.'
-              }
+                : 'Get started by creating your first admin.'}
             </p>
             {!searchTerm && (
-              <button
-                onClick={handleCreateAdmin}
-                className="btn-primary"
-              >
-                <PlusIcon className="h-5 w-5 mr-2" />
+              <button onClick={handleCreateAdmin} className="btn-primary">
                 Add First Admin
               </button>
             )}
