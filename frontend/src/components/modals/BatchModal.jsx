@@ -101,7 +101,7 @@ const BatchModal = ({ isOpen, onClose, onSave, batch, branches }) => {
                 value={batchCode}
                 onChange={(e) => setBatchCode(e.target.value)}
                 className="w-full pl-10 pr-3 py-2 border rounded-md"
-                placeholder="B-2025-01"
+                placeholder="UniA25B1"
                 required
               />
             </div>

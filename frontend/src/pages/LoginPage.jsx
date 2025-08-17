@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom';
 import { useLoginMutation } from '../store/api/authApi';
 import { setCredentials } from '../store/slices/authSlice';
 import { PhoneIcon, LockClosedIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import SunriseLogo from '../components/common/SunriseLogo';
 
 const LoginPage = () => {
   const [mobile, setMobile] = useState('');
@@ -43,10 +44,7 @@ const LoginPage = () => {
           {/* Logo and Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
-              <div className="w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-bold">☀</span>
-              </div>
-              <h1 className="ml-2 text-2xl font-bold text-primary-600">SUNRISE</h1>
+              <SunriseLogo size="xl" />
             </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Student Management Portal</h2>
             <p className="text-gray-600">Log in to continue</p>

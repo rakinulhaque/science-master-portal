@@ -6,6 +6,7 @@ import BranchManagement from '../components/admin/BranchManagement';
 import BatchManagement from '../components/admin/BatchManagement';
 import AdminManagement from '../components/admin/AdminManagement';
 import StudentManagement from '../components/admin/StudentManagement';
+import SunriseLogo from '../components/common/SunriseLogo';
 import {
   ChevronDownIcon,
   BuildingOfficeIcon,
@@ -40,23 +41,33 @@ const DashboardPage = () => {
     }
   };
 
-    const isSuperAdmin = user?.role === 'super_admin';
+  const isSuperAdmin = user?.role === 'super_admin';
   const isAdmin = user?.role === 'admin';
-  
+
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: HomeIcon, access: ['super_admin'] },
-    { id: 'students', label: 'Student Management', icon: UsersIcon, access: ['super_admin', 'admin'] },
-    { id: 'branches', label: 'Branch Management', icon: BuildingOfficeIcon, access: ['super_admin'] },
+    {
+      id: 'students',
+      label: 'Student Management',
+      icon: UsersIcon,
+      access: ['super_admin', 'admin'],
+    },
+    {
+      id: 'branches',
+      label: 'Branch Management',
+      icon: BuildingOfficeIcon,
+      access: ['super_admin'],
+    },
     { id: 'batches', label: 'Batch Management', icon: AcademicCapIcon, access: ['super_admin'] },
     { id: 'admins', label: 'Admin Management', icon: UsersIcon, access: ['super_admin'] },
-  ].filter(item => item.access.includes(user?.role));
+  ].filter((item) => item.access.includes(user?.role));
 
   const renderDashboardContent = () => {
     // For admin role, show StudentManagement component instead of duplicate code
     if (isAdmin) {
       return <StudentManagement />;
     }
-    
+
     // For super admin, show the dashboard overview
     return (
       <div className="px-6 py-6">
@@ -64,12 +75,8 @@ const DashboardPage = () => {
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-semibold text-gray-900">
-                Super Admin Dashboard
-              </h2>
-              <p className="text-sm text-gray-600 mt-1">
-                Manage your organization
-              </p>
+              <h2 className="text-2xl font-semibold text-gray-900">Super Admin Dashboard</h2>
+              <p className="text-sm text-gray-600 mt-1">Manage your organization</p>
             </div>
           </div>
         </div>
@@ -140,9 +147,12 @@ const DashboardPage = () => {
                   <div className="w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-bold">☀</span>
                   </div>
-                  <span className="ml-2 text-lg font-bold text-primary-600">SUNRISE</span>
+                  {/* <span className="ml-2 text-lg font-bold text-primary-600">SUNRISE</span> */}
                 </div>
-                <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-1 rounded-md hover:bg-gray-100">
+                <button
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="lg:hidden p-1 rounded-md hover:bg-gray-100"
+                >
                   <XMarkIcon className="h-6 w-6" />
                 </button>
               </div>
@@ -160,10 +170,16 @@ const DashboardPage = () => {
                           setIsSidebarOpen(false);
                         }}
                         className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                          isActive ? 'bg-primary-100 text-primary-700' : 'text-gray-700 hover:bg-gray-100'
+                          isActive
+                            ? 'bg-primary-100 text-primary-700'
+                            : 'text-gray-700 hover:bg-gray-100'
                         }`}
                       >
-                        <Icon className={`h-5 w-5 mr-3 ${isActive ? 'text-primary-700' : 'text-gray-500'}`} />
+                        <Icon
+                          className={`h-5 w-5 mr-3 ${
+                            isActive ? 'text-primary-700' : 'text-gray-500'
+                          }`}
+                        />
                         {item.label}
                       </button>
                     );
@@ -178,11 +194,16 @@ const DashboardPage = () => {
                     <span className="text-primary-600 font-medium">👑</span>
                   </div>
                   <div className="ml-3 flex-1">
-                    <p className="text-sm font-medium text-gray-700">{user?.username || 'Super Admin'}</p>
+                    <p className="text-sm font-medium text-gray-700">
+                      {user?.username || 'Super Admin'}
+                    </p>
                     <p className="text-xs text-gray-500">Super Administrator</p>
                   </div>
                 </div>
-                <button onClick={handleLogout} className="mt-2 w-full text-left text-sm text-gray-500 hover:text-gray-700">
+                <button
+                  onClick={handleLogout}
+                  className="mt-2 w-full text-left text-sm text-gray-500 hover:text-gray-700"
+                >
                   Logout
                 </button>
               </div>
@@ -199,7 +220,10 @@ const DashboardPage = () => {
                 {/* Logo/Branch (non super-admin) or mobile menu button */}
                 <div className="flex items-center">
                   {isSuperAdmin && (
-                    <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 rounded-md hover:bg-gray-100 mr-4">
+                    <button
+                      onClick={() => setIsSidebarOpen(true)}
+                      className="lg:hidden p-2 rounded-md hover:bg-gray-100 mr-4"
+                    >
                       <Bars3Icon className="h-6 w-6" />
                     </button>
                   )}
@@ -210,7 +234,7 @@ const DashboardPage = () => {
                         <div className="w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
                           <span className="text-white text-sm font-bold">☀</span>
                         </div>
-                        <h1 className="ml-2 text-xl font-bold text-primary-600">SUNRISE</h1>
+                        {/* <h1 className="ml-2 text-xl font-bold text-primary-600">SUNRISE</h1> */}
                       </div>
                       <div className="ml-8 text-sm text-gray-600">Motijheel Branch</div>
                     </>
@@ -245,7 +269,10 @@ const DashboardPage = () => {
                       <span>Admin.Motijheel</span>
                       <ChevronDownIcon className="h-4 w-4 ml-1" />
                     </div>
-                    <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-700">
+                    <button
+                      onClick={handleLogout}
+                      className="text-sm text-gray-500 hover:text-gray-700"
+                    >
                       Logout
                     </button>
                   </div>

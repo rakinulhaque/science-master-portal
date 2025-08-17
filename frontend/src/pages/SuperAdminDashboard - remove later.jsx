@@ -51,7 +51,7 @@ const SuperAdminDashboard = () => {
                 <div className="w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-bold">☀</span>
                 </div>
-                <h1 className="ml-2 text-xl font-bold text-primary-600">SUNRISE</h1>
+                {/* <h1 className="ml-2 text-xl font-bold text-primary-600">SUNRISE</h1> */}
               </div>
               <div className="ml-8 text-sm text-gray-600">
                 Super Admin Dashboard
