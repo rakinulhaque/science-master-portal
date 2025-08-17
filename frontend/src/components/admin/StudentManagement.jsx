@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useGetStudentsQuery } from '../../store/api/studentsApi';
 import StudentTable from '../dashboard/StudentTable';
@@ -13,15 +13,30 @@ import {
 const StudentManagement = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   
   const user = useSelector((state) => state.auth.user);
-  const { data: students = [], isLoading, refetch } = useGetStudentsQuery();
+  
+  // Debounce search term to avoid too many API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1); // Reset to first page when searching
+    }, 500);
 
-  const filteredStudents = students.filter((student) =>
-    student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.phoneNumber?.includes(searchTerm) ||
-    student.institution?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const { data: studentsResponse, isLoading, refetch } = useGetStudentsQuery({
+    page: currentPage,
+    limit: 15,
+    search: debouncedSearchTerm,
+    branchId: user?.branchId || ''
+  });
+
+  const students = studentsResponse?.data || [];
+  const pagination = studentsResponse?.pagination || {};
 
   return (
     <div className="px-6 py-6">
@@ -34,7 +49,12 @@ const StudentManagement = () => {
                     Student Management
             </h2>
             <p className="text-sm text-gray-600 mt-1">
-              {filteredStudents.length} students found
+              {pagination.totalCount || 0} students found
+              {pagination.totalCount > 0 && (
+                <span className="ml-2">
+                  (Page {pagination.currentPage} of {pagination.totalPages})
+                </span>
+              )}
             </p>
           </div>
           <button
@@ -82,9 +102,12 @@ const StudentManagement = () => {
       {/* Student Table */}
       <div className="card">
         <StudentTable 
-          students={filteredStudents} 
+          students={students} 
           isLoading={isLoading}
           onRefresh={refetch}
+          pagination={pagination}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
         />
       </div>
 
