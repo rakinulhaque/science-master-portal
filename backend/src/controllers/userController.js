@@ -3,7 +3,7 @@ import sequelize from '../models/db.js';
 import Branch from '../models/branch.js';
 
 export const updateAdmin = async (req, res) => {
-  console.log(req.body)
+  console.log("I am hitting:", req.body)
   const { id } = req.params;
   const { email, mobile, password, branchId, fullName } = req.body;
   const t = await sequelize.transaction();
