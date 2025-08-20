@@ -20,12 +20,11 @@ const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ Configure CORS (include your Render domain)
+// ✅ Configure CORS (use env FRONTEND_URL if set)
 app.use(cors({
   origin: [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://science-portal.onrender.com'   // change to your actual Render domain
+    process.env.FRONTEND_URL || 'http://localhost:5173',
+    'http://localhost:3000'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -43,13 +42,16 @@ app.use('/students', studentRoutes);
 app.use('/categories', categoryRoutes);
 app.use('/admin', studentPaymentRoutes);
 
-// ✅ Serve React frontend build
-app.use(express.static(path.join(__dirname, '../../frontend/dist')));
+// ✅ Serve React frontend build (production only)
+if (process.env.NODE_ENV === 'production') {
+  const frontendPath = path.join(__dirname, '../../frontend/dist');
+  app.use(express.static(frontendPath));
 
-// ✅ Fallback route (for React Router)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
-});
+  // Fallback for React Router
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  });
+}
 
 // ✅ Start server after DB sync
 (async () => {
