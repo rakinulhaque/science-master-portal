@@ -34,9 +34,7 @@ const AdminManagement = () => {
   const [updateAdmin] = useUpdateAdminMutation();
   const [deleteAdmin] = useDeleteAdminMutation();
 
-  // Helper function to get branch name - defined before use
   const getBranchName = (branchId) => {
-    // Handle null, undefined, or empty branchId
     if (!branchId) {
       return 'Unassigned';
     }
@@ -45,7 +43,6 @@ const AdminManagement = () => {
     return branch ? branch.name : 'Unassigned';
   };
 
-  // Filter to show only admins (not super_admin) and apply search
   const admins = useMemo(() => {
     const adminUsers = users.filter((user) => user.role === 'admin');
 
@@ -97,7 +94,6 @@ const AdminManagement = () => {
     } catch (error) {
       console.error('Error saving admin:', error);
 
-      // Extract error message from backend response
       let errorMessage = 'An error occurred while saving the admin.';
 
       if (error?.data?.message) {

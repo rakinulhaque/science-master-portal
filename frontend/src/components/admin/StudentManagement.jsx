@@ -3,21 +3,18 @@ import { useSelector } from 'react-redux';
 import { useGetStudentsQuery } from '../../store/api/studentsApi';
 import StudentTable from '../dashboard/StudentTable';
 import AddStudentModal from '../modals/AddStudentModal';
-import { 
-  UsersIcon,
-  MagnifyingGlassIcon, 
-  FunnelIcon, 
-  PlusIcon
-} from '@heroicons/react/24/outline';
+import { UsersIcon, MagnifyingGlassIcon, FunnelIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 const StudentManagement = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
-  
+
   const user = useSelector((state) => state.auth.user);
-  
+  const adminWithoutBranch = user?.branchId === null;
+  const isNotSuperAdmin = user?.role !== 'super_admin';
+
   // Debounce search term to avoid too many API calls
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -28,11 +25,15 @@ const StudentManagement = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: studentsResponse, isLoading, refetch } = useGetStudentsQuery({
+  const {
+    data: studentsResponse,
+    isLoading,
+    refetch,
+  } = useGetStudentsQuery({
     page: currentPage,
     limit: 15,
     search: debouncedSearchTerm,
-    branchId: user?.branchId || ''
+    branchId: user?.branchId || '',
   });
 
   const students = studentsResponse?.data || [];
@@ -46,7 +47,7 @@ const StudentManagement = () => {
           <div>
             <h2 className="text-2xl font-semibold text-gray-900 flex items-center">
               <UsersIcon className="h-8 w-8 mr-3 text-primary-600" />
-                    Student Management
+              Student Management
             </h2>
             <p className="text-sm text-gray-600 mt-1">
               {pagination.totalCount || 0} students found
@@ -57,15 +58,20 @@ const StudentManagement = () => {
               )}
             </p>
           </div>
+
           <button
             onClick={() => setIsAddModalOpen(true)}
-            disabled={user?.branchId === null}
+            disabled={adminWithoutBranch && isNotSuperAdmin}
             className={`flex items-center ${
-              user?.branchId === null 
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed py-2 px-4 rounded-lg font-medium' 
+              adminWithoutBranch && isNotSuperAdmin
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed py-2 px-4 rounded-lg font-medium'
                 : 'btn-primary'
             }`}
-            title={user?.branchId === null ? 'You must be assigned to a branch to add students' : ''}
+            title={
+              adminWithoutBranch && isNotSuperAdmin
+                ? 'You must be assigned to a branch to add students'
+                : ''
+            }
           >
             <PlusIcon className="h-5 w-5 mr-2" />
             Add New Student
@@ -101,8 +107,8 @@ const StudentManagement = () => {
 
       {/* Student Table */}
       <div className="card">
-        <StudentTable 
-          students={students} 
+        <StudentTable
+          students={students}
           isLoading={isLoading}
           onRefresh={refetch}
           pagination={pagination}

@@ -25,6 +25,11 @@ StudentPayment.init(
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
     },
+    discount: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      defaultValue: 0.00,
+    },
     installmentNumber: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -47,10 +52,6 @@ StudentPayment.init(
     timestamps: true,
   }
 );
-// Auto-increment installmentNumber per student
-
-
-
 
 StudentPayment.belongsTo(Student, { foreignKey: 'studentId' });
 Student.hasMany(StudentPayment, { foreignKey: 'studentId' });

@@ -37,11 +37,6 @@ Student.init(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    discount: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: true,
-      defaultValue: 0.00,
-    },
     coachingBranchId: {
       type: DataTypes.INTEGER,
       allowNull: true,
