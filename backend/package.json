@@ -5,9 +5,9 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "start": "node src/server.js", 
+    "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "postinstall": "cd ../frontend && npm install --omit=dev && npm run build", 
+    "postinstall": "cd ../frontend && npm install && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
