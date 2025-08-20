@@ -28,12 +28,7 @@ const whitelist = [
 ];
 
 const corsOptions = {
-  origin(origin, cb) {
-    // allow tools without Origin (curl/Postman) and same-origin
-    if (!origin) return cb(null, true);
-    if (whitelist.includes(origin)) return cb(null, true);
-    return cb(new Error('Not allowed by CORS'));
-  },
+  origin: true,
   credentials: true,
   methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
