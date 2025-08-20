@@ -22,13 +22,16 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 // CORS — allow your Vercel app (+ localhost for dev)
-const whitelist = [
-  process.env.FRONTEND_URL || 'http://localhost:5173',
-  'http://localhost:3000',
-];
+const whitelist = [process.env.FRONTEND_URL || 'http://localhost:5173', 'http://localhost:3000'];
 
 const corsOptions = {
   origin: true,
+  //  origin(origin, cb) {
+  //     // allow tools without Origin (curl/Postman) and same-origin
+  //     if (!origin) return cb(null, true);
+  //     if (whitelist.includes(origin)) return cb(null, true);
+  //     return cb(new Error('Not allowed by CORS'));
+  //   },
   credentials: true,
   methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
