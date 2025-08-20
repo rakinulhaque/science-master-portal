@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useGetBatchesQuery } from '../../../store/api/batchesApi';
 import { useGetCategoriesQuery } from '../../../store/api/categoriesApi';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { TrashIcon } from '@heroicons/react/24/outline';
 
 const BatchesStep = ({ data, onUpdate, onNext, onBack }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -19,44 +20,45 @@ const BatchesStep = ({ data, onUpdate, onNext, onBack }) => {
     }
   }, [categories, selectedCategory]);
 
-  // Mock data for demonstration (replace with actual API data)
-
   const availableBatches = batches;
-  console.log('Available batches:', availableBatches);
-  
-  let filteredBatches = availableBatches;
-  filteredBatches = availableBatches.filter((batch) => {
-    const matchesSearch =
-      batch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      batch.batchCode.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      !selectedCategory || batch.categoryId === selectedCategory;
 
-      const matchesFilter = showSelectedOnly
+  const filteredBatches = availableBatches.filter((batch) => {
+    const q = searchTerm.toLowerCase();
+    const matchesSearch =
+      batch.name.toLowerCase().includes(q) || batch.batchCode.toLowerCase().includes(q);
+
+    // If your ids are mixed (string/number), normalize both sides
+    const matchesCategory =
+      !selectedCategory || String(batch.categoryId) === String(selectedCategory);
+
+    const matchesFilter = showSelectedOnly
       ? data.selectedBatches.some((selected) => selected.id === batch.id)
       : true;
-      console.log('batch:', batch );
 
     return matchesSearch && matchesCategory && matchesFilter;
   });
 
   const handleBatchToggle = (batch) => {
-    const isSelected = data.selectedBatches.some(selected => selected.id === batch.id);
-    let newSelectedBatches;
-    
-    if (isSelected) {
-      newSelectedBatches = data.selectedBatches.filter(selected => selected.id !== batch.id);
-    } else {
-      newSelectedBatches = [...data.selectedBatches, batch];
-    }
-    
+    const isSelected = data.selectedBatches.some((s) => s.id === batch.id);
+    const newSelectedBatches = isSelected
+      ? data.selectedBatches.filter((s) => s.id !== batch.id)
+      : [...data.selectedBatches, batch];
+
     onUpdate({ selectedBatches: newSelectedBatches });
     setError('');
   };
 
+  const handleDeselectAll = () => {
+    if (data.selectedBatches.length === 0) return;
+    onUpdate({ selectedBatches: [] });
+    setError('');
+  };
+
   const calculateTotals = () => {
-    const totalDue = data.selectedBatches.reduce((sum, batch) => +sum + parseInt(batch.cost), 0);
-    console.log('Total due:', totalDue);
+    const totalDue = data.selectedBatches.reduce(
+      (sum, batch) => sum + (Number(batch.cost) || 0),
+      0
+    );
     return { totalDue, initialDue: totalDue };
   };
 
@@ -84,7 +86,7 @@ const BatchesStep = ({ data, onUpdate, onNext, onBack }) => {
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    selectedCategory === category.id
+                    String(selectedCategory) === String(category.id)
                       ? 'bg-primary-100 text-primary-700 border border-primary-200'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
@@ -122,9 +124,9 @@ const BatchesStep = ({ data, onUpdate, onNext, onBack }) => {
         />
       </div>
 
-      {/* Show Selected Only Toggle */}
-      <div className="flex items-center justify-end">
-        <label className="flex items-center text-sm text-gray-600">
+      {/* Toggle + Deselect */}
+      <div className="flex items-center justify-between">
+        <label className="flex items-center text-sm text-gray-600 select-none">
           <input
             type="checkbox"
             checked={showSelectedOnly}
@@ -133,6 +135,21 @@ const BatchesStep = ({ data, onUpdate, onNext, onBack }) => {
           />
           Show selected batches only
         </label>
+
+        <button
+          type="button"
+          onClick={handleDeselectAll}
+          disabled={data.selectedBatches.length === 0}
+          className={`flex items-center space-x-1 text-sm font-medium ${
+            data.selectedBatches.length === 0
+              ? 'text-gray-300 cursor-not-allowed'
+              : 'text-red-600 hover:text-red-700'
+          }`}
+          title="Deselect all batches"
+        >
+          <TrashIcon className="h-4 w-4" />
+          <span>Deselect all batches</span>
+        </button>
       </div>
 
       {/* Batch List */}
@@ -143,7 +160,7 @@ const BatchesStep = ({ data, onUpdate, onNext, onBack }) => {
           </div>
         ) : (
           filteredBatches.map((batch) => {
-            const isSelected = data.selectedBatches.some(selected => selected.id === batch.id);
+            const isSelected = data.selectedBatches.some((s) => s.id === batch.id);
             return (
               <div
                 key={batch.id}
@@ -160,6 +177,7 @@ const BatchesStep = ({ data, onUpdate, onNext, onBack }) => {
                     checked={isSelected}
                     onChange={() => handleBatchToggle(batch)}
                     className="mr-3 rounded border-gray-300"
+                    onClick={(e) => e.stopPropagation()}
                   />
                   <div>
                     <div className="font-medium text-gray-900">{batch.name}</div>
@@ -185,38 +203,41 @@ const BatchesStep = ({ data, onUpdate, onNext, onBack }) => {
         </div>
       )}
 
-      {/* Selected Batches Summary */}
+      {/* Summary (side-by-side like the screenshot) */}
       {data.selectedBatches.length > 0 && (
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <div className="text-sm text-gray-600 mb-2">
-            Selected Batches ({data.selectedBatches.length})
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Left: Selected Batches */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm text-gray-600">
+                Selected Batches ({data.selectedBatches.length})
+              </div>
+            </div>
+            <div className="text-sm text-gray-800">
+              {data.selectedBatches.map((b) => b.batchCode).join(', ')}
+            </div>
           </div>
-          <div className="text-sm text-gray-800">
-            {data.selectedBatches.map(batch => batch.batchCode).join(', ')}
-          </div>
-          <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-200">
-            <span className="text-sm font-medium">Due Now</span>
-            <span className="font-semibold">{Number(totalDue).toLocaleString()} BDT</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Initial Due</span>
-            <span className="font-semibold">{Number(initialDue).toLocaleString()} BDT</span>
+
+          {/* Right: Dues */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Due Now</span>
+              <span className="font-semibold">{Number(totalDue).toLocaleString()} BDT</span>
+            </div>
+            <div className="flex justify-between items-center mt-1">
+              <span className="text-sm font-medium">Initial Due</span>
+              <span className="font-semibold">{Number(initialDue).toLocaleString()} BDT</span>
+            </div>
           </div>
         </div>
       )}
 
       {/* Navigation Buttons */}
       <div className="flex justify-between">
-        <button
-          onClick={onBack}
-          className="btn-secondary px-6 py-2 flex items-center"
-        >
+        <button onClick={onBack} className="btn-secondary px-6 py-2 flex items-center">
           ← Go back
         </button>
-        <button
-          onClick={handleNext}
-          className="btn-primary px-8 py-2 flex items-center"
-        >
+        <button onClick={handleNext} className="btn-primary px-8 py-2 flex items-center">
           Next
           <span className="ml-2">→</span>
         </button>

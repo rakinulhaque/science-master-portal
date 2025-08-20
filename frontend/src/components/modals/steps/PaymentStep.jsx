@@ -3,19 +3,38 @@ import { useCreateStudentMutation, useAddPaymentMutation } from '../../../store/
 import { LockClosedIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
 const PaymentStep = ({ data, onUpdate, onBack, onSuccess, onClose, user }) => {
-  const [discount, setDiscount] = useState(0);
-  const [paymentMade, setPaymentMade] = useState(0);
+  // Keep as strings so we don’t show a default 0 and to fully control input
+  const [discount, setDiscount] = useState('');
+  const [paymentMade, setPaymentMade] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const [createStudent] = useCreateStudentMutation();
   const [addPayment] = useAddPaymentMutation();
 
+  // Allow only digits and a single dot
+  const sanitizeMoney = (raw) => {
+    let v = (raw || '').replace(/[^\d.]/g, '');
+    const firstDot = v.indexOf('.');
+    if (firstDot !== -1) {
+      const before = v.slice(0, firstDot + 1);
+      const after = v.slice(firstDot + 1).replace(/\./g, '');
+      v = before + after;
+    }
+    if (/^0\d/.test(v)) v = v.replace(/^0+/, '0');
+    return v;
+  };
+
+  const discountNum = discount === '' ? 0 : Number(discount);
+  const paymentMadeNum = paymentMade === '' ? 0 : Number(paymentMade);
+
   const calculateTotals = () => {
-    const initialDue = data.selectedBatches.reduce((sum, batch) => sum + parseInt(batch.cost), 0);
-    const totalDue = initialDue - discount;
-    const remainingDue = totalDue - paymentMade;
-    
+    const initialDue = data.selectedBatches.reduce(
+      (sum, batch) => sum + (parseFloat(batch.cost) || 0),
+      0
+    );
+    const totalDue = Math.max(0, initialDue - discountNum);
+    const remainingDue = Math.max(0, totalDue - paymentMadeNum);
     return { initialDue, totalDue, remainingDue };
   };
 
@@ -23,59 +42,48 @@ const PaymentStep = ({ data, onUpdate, onBack, onSuccess, onClose, user }) => {
 
   const handleConfirm = async () => {
     setIsSubmitting(true);
-    
+
     try {
-      // Create student with batch associations
+      // 1) Create student (no discount here; discount is handled via addPayment endpoint)
       const studentPayload = {
         name: data.name,
         phoneNumber: data.phoneNumber,
         institution: data.institution,
         email: data.email || null,
-        photo: data.photo ? 'uploaded_photo.jpg' : null, // In real app, upload photo first
-        batchIds: data.selectedBatches.map(batch => batch.id),
+        photo: data.photo ? 'uploaded_photo.jpg' : null, // upload first in a real app
+        batchIds: data.selectedBatches.map((b) => b.id),
         coachingBranchId: user?.branchId,
-        discount: discount > 0 ? discount : 0, // Add discount to student creation
       };
 
       const studentResult = await createStudent(studentPayload).unwrap();
-      
-      // Add payment if any payment was made
-      if (paymentMade > 0) {
-        console.log('Adding payment:', {
+
+      // 2) Send discount and/or initial payment in a single call
+      if (paymentMade !== '' || discount !== '') {
+        const paymentData = {
+          // Only include amount if user typed something; 0 is valid if they typed 0
+          ...(paymentMade !== '' ? { amount: paymentMadeNum } : {}),
+          ...(discount !== '' ? { discount: discountNum } : {}),
+          date: new Date().toISOString().split('T')[0],
+          note: 'Initial payment',
+        };
+
+        await addPayment({
           studentId: studentResult.id,
-          paymentData: {
-            amount: paymentMade,
-            date: new Date().toISOString().split('T')[0],
-            note: 'Initial payment',
-          }
-        });
-        
-        const paymentResult = await addPayment({
-          studentId: studentResult.id,
-          paymentData: {
-            amount: paymentMade,
-            date: new Date().toISOString().split('T')[0],
-            note: 'Initial payment',
-          }
+          paymentData,
         }).unwrap();
-        
-        console.log('Payment result:', paymentResult);
       }
 
-      // Show success state
       setShowSuccess(true);
-      
-      // Auto close after 2 seconds
       setTimeout(() => {
         onSuccess();
       }, 2000);
-      
     } catch (error) {
-      console.error('Error creating student or payment:', error);
-      if (error.data) {
-        console.error('Error details:', error.data);
-      }
-      alert(`Failed to create student or process payment: ${error.data?.message || error.message || 'Unknown error'}`);
+      // eslint-disable-next-line no-alert
+      alert(
+        `Failed to create student or process payment: ${
+          error?.data?.message || error?.message || 'Unknown error'
+        }`
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -85,22 +93,14 @@ const PaymentStep = ({ data, onUpdate, onBack, onSuccess, onClose, user }) => {
     return (
       <div className="text-center py-8">
         <CheckCircleIcon className="h-16 w-16 text-green-500 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Student Added Successfully!
-        </h3>
-        <p className="text-gray-600 mb-4">
-          {data.name} has been added to the system.
-        </p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Student Added Successfully!</h3>
+        <p className="text-gray-600 mb-4">{data.name} has been added to the system.</p>
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-          <div className="text-sm text-green-800">
-            ✅ New entry has been added successfully.
-          </div>
+          <div className="text-sm text-green-800">✅ New entry has been added successfully.</div>
         </div>
-        {paymentMade > 0 && (
+        {paymentMadeNum > 0 && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="text-sm text-blue-800">
-              💳 Payment has been completed successfully.
-            </div>
+            <div className="text-sm text-blue-800">💳 Payment has been completed successfully.</div>
           </div>
         )}
       </div>
@@ -109,7 +109,7 @@ const PaymentStep = ({ data, onUpdate, onBack, onSuccess, onClose, user }) => {
 
   return (
     <div className="space-y-6">
-      {/* Student Info Header */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="text-orange-600 text-sm flex items-center">
           <span className="mr-2">⚠️</span>
@@ -136,22 +136,20 @@ const PaymentStep = ({ data, onUpdate, onBack, onSuccess, onClose, user }) => {
             <LockClosedIcon className="h-5 w-5 text-gray-400 mr-2" />
             <span className="font-medium text-gray-700">Initial due</span>
           </div>
-          <span className="font-semibold text-gray-900">
-            {initialDue.toLocaleString()} BDT
-          </span>
+          <span className="font-semibold text-gray-900">{initialDue.toLocaleString()} BDT</span>
         </div>
 
-        {/* Discount */}
+        {/* Discount (text input, no spinner, numeric only) */}
         <div className="flex items-center justify-between">
           <label className="font-medium text-gray-700">Discount (optional)</label>
           <input
-            type="number"
+            type="text"
+            inputMode="decimal"
+            pattern="[0-9]*[.]?[0-9]*"
             value={discount}
-            onChange={(e) => setDiscount(Number(e.target.value) || 0)}
+            onChange={(e) => setDiscount(sanitizeMoney(e.target.value))}
             className="w-48 input-field text-right"
-            placeholder="Enter a discount amount"
-            min="0"
-            max={initialDue}
+            placeholder="Enter amount"
           />
         </div>
 
@@ -161,22 +159,20 @@ const PaymentStep = ({ data, onUpdate, onBack, onSuccess, onClose, user }) => {
             <LockClosedIcon className="h-5 w-5 text-gray-400 mr-2" />
             <span className="font-medium text-gray-700">Total due</span>
           </div>
-          <span className="font-semibold text-gray-900">
-            {totalDue.toLocaleString()} BDT
-          </span>
+          <span className="font-semibold text-gray-900">{totalDue.toLocaleString()} BDT</span>
         </div>
 
-        {/* Payment Made */}
+        {/* Payment Made (text input, no spinner, numeric only) */}
         <div className="flex items-center justify-between">
           <label className="font-medium text-gray-700">Payment made</label>
           <input
-            type="number"
+            type="text"
+            inputMode="decimal"
+            pattern="[0-9]*[.]?[0-9]*"
             value={paymentMade}
-            onChange={(e) => setPaymentMade(Number(e.target.value) || 0)}
+            onChange={(e) => setPaymentMade(sanitizeMoney(e.target.value))}
             className="w-48 input-field text-right"
-            placeholder="Enter a payment amount"
-            min="0"
-            max={totalDue}
+            placeholder="Enter amount"
           />
         </div>
 
@@ -186,13 +182,11 @@ const PaymentStep = ({ data, onUpdate, onBack, onSuccess, onClose, user }) => {
             <LockClosedIcon className="h-5 w-5 text-gray-400 mr-2" />
             <span className="font-medium text-gray-700">Remaining due</span>
           </div>
-          <span className="font-semibold text-gray-900">
-            {remainingDue.toLocaleString()} BDT
-          </span>
+          <span className="font-semibold text-gray-900">{remainingDue.toLocaleString()} BDT</span>
         </div>
       </div>
 
-      {/* Navigation Buttons */}
+      {/* Navigation */}
       <div className="flex justify-between">
         <button
           onClick={onBack}
@@ -212,9 +206,7 @@ const PaymentStep = ({ data, onUpdate, onBack, onSuccess, onClose, user }) => {
               Creating...
             </>
           ) : (
-            <>
-              ✓ Confirm
-            </>
+            <>✓ Confirm</>
           )}
         </button>
       </div>
