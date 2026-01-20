@@ -26,12 +26,13 @@ const whitelist = [process.env.FRONTEND_URL || 'http://localhost:5173', 'http://
 
 const corsOptions = {
   origin: true,
-  //  origin(origin, cb) {
-  //     // allow tools without Origin (curl/Postman) and same-origin
-  //     if (!origin) return cb(null, true);
-  //     if (whitelist.includes(origin)) return cb(null, true);
-  //     return cb(new Error('Not allowed by CORS'));
-  //   },
+  // origin(origin, cb) {
+  //   // allow tools without Origin (curl/Postman) and same-origin
+  //   if (!origin) return cb(null, true);
+  //   if (whitelist.includes(origin)) return cb(null, true);
+  //   return cb(new Error('Not allowed by CORS'));
+
+  // },
   credentials: true,
   methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
