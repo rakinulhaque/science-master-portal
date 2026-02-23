@@ -4,27 +4,52 @@ import Branch from '../models/branch.js';
 import StudentPayment from '../models/studentPayment.js';
 import sequelize from '../models/db.js';
 
-// Create a student (admin or super admin)
+// Create a student (admin or super admin) with atomic initial payment
 export const createStudent = async (req, res) => {
-  const { name, phoneNumber, institution, email, photo, gpa, coachingBranchId, batchIds, discount } = req.body;
+  const {
+    name, phoneNumber, institution, email, photo, gpa,
+    coachingBranchId, batchIds, discount,
+    initialPaymentAmount, paymentDate, paymentNote
+  } = req.body;
+
   if (!name || !phoneNumber || !institution) {
     return res.status(400).json({ message: 'Name, phone number, and institution are required.' });
   }
-  if (discount !== undefined && isNaN(discount)) {
-    return res.status(400).json({ message: 'Discount must be a number if provided.' });
-  }
+
   const t = await sequelize.transaction();
   try {
-    const student = await Student.create({ name, phoneNumber, institution, email, photo, gpa, coachingBranchId, discount }, { transaction: t });
+    const student = await Student.create({
+      name, phoneNumber, institution, email, photo, gpa, coachingBranchId,
+      discount: discount || 0
+    }, { transaction: t });
+
     // Assign batches if provided
     if (Array.isArray(batchIds) && batchIds.length > 0) {
-      const batches = await Batch.findAll({ where: { id: batchIds } });
+      const batches = await Batch.findAll({ where: { id: batchIds }, transaction: t });
       await student.setBatches(batches, { transaction: t });
     }
+
+    // Atomic initial payment
+    let payment = null;
+    if (initialPaymentAmount && !isNaN(initialPaymentAmount) && parseFloat(initialPaymentAmount) > 0) {
+      payment = await StudentPayment.create({
+        studentId: student.id,
+        amount: parseFloat(initialPaymentAmount),
+        date: paymentDate || new Date(),
+        note: paymentNote || 'Initial payment',
+        installmentNumber: 1
+      }, { transaction: t });
+    }
+
     await t.commit();
-    res.status(201).json(student);
+
+    // Refresh student to include associated data if needed, or just return basic info
+    res.status(201).json({ ...student.toJSON(), initialPayment: payment });
   } catch (err) {
     await t.rollback();
+    if (err.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ message: 'A student with this phone number already exists.' });
+    }
     throw err;
   }
 };

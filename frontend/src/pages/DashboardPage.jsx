@@ -8,7 +8,7 @@ import BatchManagement from '../components/admin/BatchManagement';
 import AdminManagement from '../components/admin/AdminManagement';
 import StudentManagement from '../components/admin/StudentManagement';
 import CategoryManagement from '../components/admin/CategoryManagement';
-import SunriseLogo from '../components/common/SunriseLogo';
+import PocketCoachLogo from '../components/common/PocketCoachLogo';
 
 import { useGetBranchesQuery } from '../store/api/branchesApi';
 
@@ -160,13 +160,12 @@ const DashboardPage = () => {
 
             {/* Sidebar */}
             <div
-              className={`fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
-                isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-              }`}
+              className={`fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                }`}
             >
               <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
                 <div className="flex items-center">
-                  <SunriseLogo size="large" className="-mb-0.5" />
+                  <PocketCoachLogo size="large" className="-mb-0.5" />
                 </div>
                 <button
                   onClick={() => setIsSidebarOpen(false)}
@@ -188,16 +187,14 @@ const DashboardPage = () => {
                           handleSectionChange(item.id);
                           setIsSidebarOpen(false);
                         }}
-                        className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                          isActive
+                        className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${isActive
                             ? 'bg-primary-100 text-primary-700'
                             : 'text-gray-700 hover:bg-gray-100'
-                        }`}
+                          }`}
                       >
                         <Icon
-                          className={`h-5 w-5 mr-3 ${
-                            isActive ? 'text-primary-700' : 'text-gray-500'
-                          }`}
+                          className={`h-5 w-5 mr-3 ${isActive ? 'text-primary-700' : 'text-gray-500'
+                            }`}
                         />
                         {item.label}
                       </button>
@@ -250,7 +247,7 @@ const DashboardPage = () => {
                   {!isSuperAdmin && (
                     <>
                       <div className="flex items-center">
-                        <SunriseLogo size="medium" className="-mb-0.5" />
+                        <PocketCoachLogo size="medium" className="-mb-0.5" />
                       </div>
                       <div className="ml-8 text-sm text-gray-600">
                         {adminBranchName}
@@ -264,16 +261,16 @@ const DashboardPage = () => {
                         {activeSection === 'dashboard'
                           ? 'Dashboard'
                           : activeSection === 'branches'
-                          ? 'Branch Management'
-                          : activeSection === 'categories'
-                          ? 'Category Management'
-                          : activeSection === 'batches'
-                          ? 'Batch Management'
-                          : activeSection === 'admins'
-                          ? 'Admin Management'
-                          : activeSection === 'students'
-                          ? 'Student Management'
-                          : 'Dashboard'}
+                            ? 'Branch Management'
+                            : activeSection === 'categories'
+                              ? 'Category Management'
+                              : activeSection === 'batches'
+                                ? 'Batch Management'
+                                : activeSection === 'admins'
+                                  ? 'Admin Management'
+                                  : activeSection === 'students'
+                                    ? 'Student Management'
+                                    : 'Dashboard'}
                       </h1>
                     </div>
                   )}

@@ -2,19 +2,27 @@ import Student from '../models/student.js';
 import Batch from '../models/batch.js';
 import StudentPayment from '../models/studentPayment.js';
 
-export async function calculateStudentDue(studentId) {
-  const student = await Student.findByPk(studentId, { include: [Batch] });
+export async function calculateStudentDue(studentId, transaction = null) {
+  const student = await Student.findByPk(studentId, {
+    include: [Batch],
+    transaction
+  });
   if (!student) return null;
-  const batchCosts = student.Batches.map(batch => parseFloat(batch.cost || 0));
-  const totalBatchCost = batchCosts.reduce((sum, c) => sum + c, 0);
+
+  const totalBatchCost = student.Batches.reduce((sum, batch) => sum + parseFloat(batch.cost || 0), 0);
   const discount = parseFloat(student.discount || 0);
-  const payments = await StudentPayment.findAll({ where: { studentId } });
+
+  const payments = await StudentPayment.findAll({
+    where: { studentId },
+    transaction
+  });
   const totalPaid = payments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+
   return {
     initialDue: totalBatchCost,
     discount,
     totalPaid,
-    finalDue: totalBatchCost - discount - totalPaid
+    finalDue: Math.max(0, totalBatchCost - discount - totalPaid)
   };
 }
 
@@ -43,11 +51,11 @@ import { Op } from 'sequelize';
 
 export const getAllStudentsWithDue = async (req, res) => {
   const { search, institution, batchId, branchId, page = 1, limit = 15 } = req.query;
-  
+
   const pageNumber = parseInt(page, 10);
   const pageSize = parseInt(limit, 10);
   const offset = (pageNumber - 1) * pageSize;
-  
+
   let where = {};
   if (search) {
     where[Op.or] = [
@@ -62,7 +70,7 @@ export const getAllStudentsWithDue = async (req, res) => {
   if (branchId) {
     where.coachingBranchId = branchId;
   }
-  
+
   const include = [
     {
       model: Batch,
@@ -74,13 +82,13 @@ export const getAllStudentsWithDue = async (req, res) => {
       attributes: ['id', 'amount', 'date', 'note', 'installmentNumber'],
     },
   ];
-  
+
   try {
     const totalCount = await Student.count({
       where,
       include: batchId ? [{ model: Batch, through: { attributes: [] }, where: { id: batchId } }] : []
     });
-    
+
     const students = await Student.findAll({
       where,
       include,
@@ -88,18 +96,18 @@ export const getAllStudentsWithDue = async (req, res) => {
       offset: offset,
       order: [['createdAt', 'DESC']]
     });
-    
+
     const results = await Promise.all(
       students.map(async (student) => {
         const dueDetails = await calculateStudentDue(student.id);
         return { ...student.toJSON(), ...dueDetails };
       })
     );
-    
+
     const totalPages = Math.ceil(totalCount / pageSize);
     const hasNextPage = pageNumber < totalPages;
     const hasPrevPage = pageNumber > 1;
-    
+
     res.json({
       data: results,
       pagination: {

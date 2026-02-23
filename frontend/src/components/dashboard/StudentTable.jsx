@@ -10,7 +10,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Dialog } from "@headlessui/react";
 import { generateStudentPDF } from "../../utils/pdfGenerator";
-import PaymentStep from "../modals/steps/PaymentStep"; // reusing your existing step
+import { useAddPaymentMutation } from "../../store/api/studentsApi";
 import DeleteConfirmModal from "../modals/DeleteConfirmModal";
 import API_CONFIG from "../../config/api";
 const StudentTable = ({
@@ -43,13 +43,16 @@ const StudentTable = ({
   };
 
   const studentTotals = (student) => {
-    const totalDue = calculateTotalDue(student.Batches);
-    const paymentMade =
-      student.StudentPayments?.reduce(
+    // Use backend-calculated values which correctly account for discount
+    const totalDue = student.initialDue ?? calculateTotalDue(student.Batches);
+    const discount = parseFloat(student.discount) || 0;
+    const paymentMade = student.totalPaid ??
+      (student.StudentPayments?.reduce(
         (total, p) => total + (parseFloat(p.amount) || 0),
         0
-      ) || 0;
-    return { totalDue, paymentMade, remainingDue: totalDue - paymentMade };
+      ) || 0);
+    const remainingDue = student.finalDue ?? (totalDue - discount - paymentMade);
+    return { totalDue, discount, paymentMade, remainingDue };
   };
 
   // ======= Loading & Empty =======
@@ -100,22 +103,20 @@ const StudentTable = ({
           <button
             onClick={() => onPageChange(page - 1)}
             disabled={!hasPrevPage}
-            className={`relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${
-              hasPrevPage
+            className={`relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${hasPrevPage
                 ? "text-gray-700 hover:bg-gray-50"
                 : "text-gray-400 cursor-not-allowed"
-            }`}
+              }`}
           >
             Previous
           </button>
           <button
             onClick={() => onPageChange(page + 1)}
             disabled={!hasNextPage}
-            className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${
-              hasNextPage
+            className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${hasNextPage
                 ? "text-gray-700 hover:bg-gray-50"
                 : "text-gray-400 cursor-not-allowed"
-            }`}
+              }`}
           >
             Next
           </button>
@@ -135,11 +136,10 @@ const StudentTable = ({
               <button
                 onClick={() => onPageChange(page - 1)}
                 disabled={!hasPrevPage}
-                className={`relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 ${
-                  hasPrevPage
+                className={`relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 ${hasPrevPage
                     ? "hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                     : "cursor-not-allowed"
-                }`}
+                  }`}
               >
                 <span className="sr-only">Previous</span>
                 <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
@@ -149,11 +149,10 @@ const StudentTable = ({
                 <button
                   key={pageNum}
                   onClick={() => onPageChange(pageNum)}
-                  className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
-                    pageNum === page
+                  className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${pageNum === page
                       ? "z-10 bg-primary-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
                       : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                  }`}
+                    }`}
                 >
                   {pageNum}
                 </button>
@@ -162,11 +161,10 @@ const StudentTable = ({
               <button
                 onClick={() => onPageChange(page + 1)}
                 disabled={!hasNextPage}
-                className={`relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 ${
-                  hasNextPage
+                className={`relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 ${hasNextPage
                     ? "hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                     : "cursor-not-allowed"
-                }`}
+                  }`}
               >
                 <span className="sr-only">Next</span>
                 <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
@@ -382,55 +380,65 @@ const StudentTable = ({
     );
   };
 
-  // Collect Payment (reusing PaymentStep)
+  // Collect Payment modal — standalone form for adding payments to existing students
   const CollectPaymentModal = ({ student, onClose }) => {
+    const [paymentAmount, setPaymentAmount] = useState('');
+    const [paymentNote, setPaymentNote] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [addPayment] = useAddPaymentMutation();
+
     if (!student) return null;
 
-    const paymentData = useMemo(() => {
-      const totalCost = calculateTotalDue(student.Batches);
-      const totalPaid =
-        student.StudentPayments?.reduce(
-          (s, p) => s + (parseFloat(p.amount) || 0),
-          0
-        ) || 0;
-      const discount = student.discount || 0;
-
-      return {
-        discount,
-        paymentMade: 0,
-        totalCost,
-        totalPaid,
-      };
-    }, [student]);
-
-    const stepData = useMemo(
-      () => ({
-        selectedBatches: student.Batches || [],
-        paymentData,
-      }),
-      [student, paymentData]
-    );
+    const totals = studentTotals(student);
 
     const handlePDF = async () => {
       try {
         const payments = student.StudentPayments || [];
         const dueInfo = {
-          totalCost:
-            student.initialDue ?? calculateTotalDue(student.Batches) ?? 0,
-          discount: student.discount ?? 0,
-          totalPaid: payments.reduce(
-            (sum, p) => sum + (parseFloat(p.amount) || 0),
-            0
-          ),
-          finalDue:
-            (student.initialDue ?? calculateTotalDue(student.Batches) ?? 0) -
-            (student.discount ?? 0) -
-            payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0),
+          totalCost: student.initialDue ?? calculateTotalDue(student.Batches) ?? 0,
+          discount: parseFloat(student.discount) || 0,
+          totalPaid: totals.paymentMade,
+          finalDue: totals.remainingDue,
         };
         await generateStudentPDF(student, payments, dueInfo);
       } catch (err) {
         console.error(err);
-        //token('Failed to generate PDF. Please try again.');
+      }
+    };
+
+    const handleSubmitPayment = async () => {
+      const amount = parseFloat(paymentAmount);
+      if (!amount || amount <= 0) {
+        alert('Please enter a valid payment amount.');
+        return;
+      }
+      if (amount > totals.remainingDue) {
+        alert(`Payment amount (${amount}) exceeds remaining due (${totals.remainingDue}).`);
+        return;
+      }
+
+      setIsSubmitting(true);
+      try {
+        await addPayment({
+          studentId: student.id,
+          paymentData: {
+            amount,
+            date: new Date().toISOString().split('T')[0],
+            note: paymentNote || 'Payment',
+          }
+        }).unwrap();
+
+        setShowSuccess(true);
+        setTimeout(() => {
+          if (onRefresh) onRefresh();
+          onClose();
+        }, 1500);
+      } catch (error) {
+        console.error('Error adding payment:', error);
+        alert(`Failed to add payment: ${error.data?.message || error.message || 'Unknown error'}`);
+      } finally {
+        setIsSubmitting(false);
       }
     };
 
@@ -438,29 +446,97 @@ const StudentTable = ({
       <Dialog open={!!student} onClose={onClose} className="relative z-50">
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="mx-auto w-full max-w-3xl bg-white rounded-lg shadow-xl">
+          <Dialog.Panel className="mx-auto w-full max-w-lg bg-white rounded-lg shadow-xl">
             <div className="flex items-center justify-between p-6 border-b">
               <Dialog.Title className="text-lg font-semibold text-gray-900">
-                Collect a Payment or View Payment Details
+                Collect Payment
               </Dialog.Title>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600"
-                title="Close"
-              >
-                ✕
-              </button>
+              <button onClick={onClose} className="text-gray-400 hover:text-gray-600" title="Close">✕</button>
             </div>
 
-            <div className="p-6">
-              <PaymentStep
-                data={stepData}
-                onUpdate={() => {}}
-                onBack={null}
-                onSuccess={() => {}}
-                onClose={onClose}
-                user={user}
-              />
+            <div className="p-6 space-y-4">
+              {showSuccess ? (
+                <div className="text-center py-6">
+                  <div className="text-green-500 text-4xl mb-2">✅</div>
+                  <p className="text-lg font-semibold text-gray-900">Payment recorded successfully!</p>
+                </div>
+              ) : (
+                <>
+                  {/* Student Info */}
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                      <span className="text-sm">👤</span>
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900">{student.name}</div>
+                      <div className="text-sm text-gray-500">{student.phoneNumber}</div>
+                    </div>
+                  </div>
+
+                  {/* Due Summary */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="p-3 bg-gray-50 rounded-lg text-center">
+                      <div className="text-xs text-gray-500">Total Due</div>
+                      <div className="font-semibold">{formatCurrency(totals.totalDue)}</div>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg text-center">
+                      <div className="text-xs text-gray-500">Paid</div>
+                      <div className="font-semibold text-green-600">{formatCurrency(totals.paymentMade)}</div>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg text-center">
+                      <div className="text-xs text-gray-500">Remaining</div>
+                      <div className="font-semibold text-red-600">{formatCurrency(totals.remainingDue)}</div>
+                    </div>
+                  </div>
+
+                  {totals.discount > 0 && (
+                    <div className="text-sm text-gray-500">Discount applied: {formatCurrency(totals.discount)}</div>
+                  )}
+
+                  {/* Payment History */}
+                  {student.StudentPayments && student.StudentPayments.length > 0 && (
+                    <div>
+                      <div className="text-sm font-medium text-gray-700 mb-2">Payment History</div>
+                      <div className="max-h-32 overflow-y-auto space-y-1">
+                        {student.StudentPayments.map((p) => (
+                          <div key={p.id} className="flex justify-between text-sm text-gray-600 bg-gray-50 px-3 py-1.5 rounded">
+                            <span>#{p.installmentNumber} — {p.note || 'Payment'}</span>
+                            <span className="font-medium">{formatCurrency(parseFloat(p.amount))}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* New Payment Input */}
+                  {totals.remainingDue > 0 && (
+                    <div className="space-y-3 pt-2 border-t">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Payment Amount</label>
+                        <input
+                          type="number"
+                          value={paymentAmount}
+                          onChange={(e) => setPaymentAmount(e.target.value)}
+                          className="w-full input-field"
+                          placeholder={`Max: ${totals.remainingDue}`}
+                          min="1"
+                          max={totals.remainingDue}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Note (optional)</label>
+                        <input
+                          type="text"
+                          value={paymentNote}
+                          onChange={(e) => setPaymentNote(e.target.value)}
+                          className="w-full input-field"
+                          placeholder="e.g. 2nd installment"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             <div className="flex justify-between items-center px-6 py-4 border-t bg-gray-50 rounded-b-lg">
@@ -470,16 +546,20 @@ const StudentTable = ({
                 title="Download receipt as PDF"
               >
                 <DocumentIcon className="h-5 w-5 mr-1" />
-                Download Receipt (PDF)
+                Download Receipt
               </button>
               <div className="flex gap-3">
-                <button
-                  onClick={onClose}
-                  className="btn-secondary"
-                  title="Close this dialog"
-                >
-                  Close
-                </button>
+                <button onClick={onClose} className="btn-secondary" title="Close">Close</button>
+                {!showSuccess && totals.remainingDue > 0 && (
+                  <button
+                    onClick={handleSubmitPayment}
+                    disabled={isSubmitting || !paymentAmount}
+                    className="btn-primary"
+                    title="Submit payment"
+                  >
+                    {isSubmitting ? 'Submitting...' : 'Collect Payment'}
+                  </button>
+                )}
               </div>
             </div>
           </Dialog.Panel>
@@ -641,9 +721,8 @@ const StudentTable = ({
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={confirmStudentDelete}
         title={`Delete Student: ${deleteTarget?.name || ""}`}
-        message={`Are you sure you want to delete the student "${
-          deleteTarget?.name || ""
-        }"? This action cannot be undone.`}
+        message={`Are you sure you want to delete the student "${deleteTarget?.name || ""
+          }"? This action cannot be undone.`}
       />
     </div>
   );

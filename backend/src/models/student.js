@@ -4,7 +4,7 @@ import Batch from './batch.js';
 import Branch from './branch.js';
 
 
-class Student extends Model {}
+class Student extends Model { }
 
 Student.init(
   {
@@ -46,6 +46,11 @@ Student.init(
       },
       onDelete: 'CASCADE',
       onUpdate: 'CASCADE',
+    },
+    discount: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0.00,
     },
   },
   {

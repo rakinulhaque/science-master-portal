@@ -15,7 +15,7 @@ const PaymentStep = ({ data, onUpdate, onBack, onSuccess, onClose, user }) => {
     const initialDue = data.selectedBatches.reduce((sum, batch) => sum + parseInt(batch.cost), 0);
     const totalDue = initialDue - discount;
     const remainingDue = totalDue - paymentMade;
-    
+
     return { initialDue, totalDue, remainingDue };
   };
 
@@ -23,53 +23,33 @@ const PaymentStep = ({ data, onUpdate, onBack, onSuccess, onClose, user }) => {
 
   const handleConfirm = async () => {
     setIsSubmitting(true);
-    
+
     try {
-      // Create student with batch associations
+      // Create student with batch associations and initial payment
       const studentPayload = {
         name: data.name,
         phoneNumber: data.phoneNumber,
         institution: data.institution,
         email: data.email || null,
-        photo: data.photo ? 'uploaded_photo.jpg' : null, // In real app, upload photo first
+        photo: data.photo ? 'uploaded_photo.jpg' : null,
         batchIds: data.selectedBatches.map(batch => batch.id),
         coachingBranchId: user?.branchId,
-        discount: discount > 0 ? discount : 0, // Add discount to student creation
+        discount: discount > 0 ? discount : 0,
+        initialPaymentAmount: paymentMade > 0 ? paymentMade : 0,
+        paymentDate: new Date().toISOString().split('T')[0],
+        paymentNote: 'Initial payment'
       };
 
-      const studentResult = await createStudent(studentPayload).unwrap();
-      
-      // Add payment if any payment was made
-      if (paymentMade > 0) {
-        console.log('Adding payment:', {
-          studentId: studentResult.id,
-          paymentData: {
-            amount: paymentMade,
-            date: new Date().toISOString().split('T')[0],
-            note: 'Initial payment',
-          }
-        });
-        
-        const paymentResult = await addPayment({
-          studentId: studentResult.id,
-          paymentData: {
-            amount: paymentMade,
-            date: new Date().toISOString().split('T')[0],
-            note: 'Initial payment',
-          }
-        }).unwrap();
-        
-        console.log('Payment result:', paymentResult);
-      }
+      await createStudent(studentPayload).unwrap();
 
       // Show success state
       setShowSuccess(true);
-      
+
       // Auto close after 2 seconds
       setTimeout(() => {
         onSuccess();
       }, 2000);
-      
+
     } catch (error) {
       console.error('Error creating student or payment:', error);
       if (error.data) {

@@ -13,17 +13,17 @@ export const addStudentPayment = async (req, res) => {
   }
   const t = await sequelize.transaction();
   try {
-    const student = await Student.findByPk(studentId, { transaction: t });
-    if (!student) {
-      await t.rollback();
-      return res.status(404).json({ message: 'Student not found' });
-    }
     // Calculate what the new due would be if this payment is added
-    const dueDetails = await calculateStudentDue(studentId);
+    const dueDetails = await calculateStudentDue(studentId, t);
+
     const newFinalDue = dueDetails.finalDue - parseFloat(amount);
+
     if (newFinalDue < 0) {
       await t.rollback();
-      return res.status(400).json({ message: 'Final due cannot be less than zero after this payment. Please check the payment amount, discount, and batch cost.' });
+      return res.status(400).json({
+        message: 'Payment exceeds remaining due.',
+        details: { remainingDue: dueDetails.finalDue, attemptedPayment: amount }
+      });
     }
     // Find last installment number for this student
     const lastPayment = await StudentPayment.findOne({

@@ -2,7 +2,7 @@ import { DataTypes, Model } from 'sequelize';
 import sequelize from './db.js';
 import Student from './student.js';
 
-class StudentPayment extends Model {}
+class StudentPayment extends Model { }
 
 StudentPayment.init(
   {
@@ -24,11 +24,6 @@ StudentPayment.init(
     amount: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
-    },
-    discount: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: true,
-      defaultValue: 0.00,
     },
     installmentNumber: {
       type: DataTypes.INTEGER,

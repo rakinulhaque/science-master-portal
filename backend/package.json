@@ -1,12 +1,13 @@
 {
-  "name": "science-master-portal-backend",
+  "name": "pocket-coach-backend",
   "version": "1.0.0",
-  "description": "Backend API for Science Master Portal with comprehensive student management",
+  "description": "Backend API for Pocket Coach Portal with comprehensive student management",
   "main": "src/server.js",
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "seed:admin": "node src/seeders/adminSeeder.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -17,7 +18,7 @@
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.11.3",
     "sequelize": "^6.37.1",
-    "swagger-jsdoc": "^6.2.8",
+    "swagger-jsdoc": "^1.2.1",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {

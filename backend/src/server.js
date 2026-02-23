@@ -48,7 +48,7 @@ app.set('trust proxy', 1);
 /* ------------------------------ Health ----------------------------- */
 
 app.get('/', (_req, res) => {
-  res.status(200).send('Science Master API is running');
+  res.status(200).send('Pocket Coach API is running');
 });
 
 app.get('/healthz', (_req, res) => {

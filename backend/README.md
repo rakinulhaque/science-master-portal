@@ -1,6 +1,6 @@
-# Science Master Portal - Backend
+# Pocket Coach Portal - Backend
 
-This is the backend API for the Science Master Portal application.
+This is the backend API for the Pocket Coach Portal application.
 
 ## Project Structure
 

@@ -10,7 +10,7 @@ import {
   EyeSlashIcon,
   QuestionMarkCircleIcon,
 } from '@heroicons/react/24/outline';
-import SunriseLogo from '../components/common/SunriseLogo';
+import PocketCoachLogo from '../components/common/PocketCoachLogo';
 
 const LoginPage = () => {
   const [mobile, setMobile] = useState('');
@@ -50,7 +50,7 @@ const LoginPage = () => {
           {/* Wordmark / Logo */}
           <div className="mb-2">
             <div className="flex items-center space-x-2">
-              <SunriseLogo size="medium" />
+              <PocketCoachLogo size="medium" />
             </div>
           </div>
 
